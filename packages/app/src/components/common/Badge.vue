@@ -124,7 +124,7 @@ defineProps({
   }
 
   &.color-danger {
-    @apply bg-error-500 text-white;
+    @apply border border-error-500 text-error-500;
   }
 
   &.color-progress {
@@ -132,7 +132,7 @@ defineProps({
   }
 
   &.color-dark-success {
-    @apply bg-success-600 text-white;
+    @apply border border-success-500 text-success-500;
   }
 
   &.text-color-neutral {

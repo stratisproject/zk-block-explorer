@@ -2,7 +2,8 @@
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";
 
-.debugger-trace-height, .parent-child-section {
+.debugger-trace-height,
+.parent-child-section {
   -ms-overflow-style: none;
   scrollbar-width: thin;
 
@@ -10,10 +11,12 @@
     width: 6px;
     background: #cbcfd6;
   }
+
   &::-webkit-scrollbar-track {
     background: #cbcfd6;
     border-radius: 5px;
   }
+
   &::-webkit-scrollbar-thumb {
     background-color: white;
     border-radius: 14px;
@@ -22,6 +25,7 @@
 }
 
 @layer base {
+
   *,
   *::before,
   *::after {
@@ -32,11 +36,13 @@
   }
 
   h1 {
-    @apply text-4xl font-bold text-neutral-50;
+    @apply text-4xl font-bold text-neutral-700;
   }
+
   h2 {
     @apply text-3xl font-bold text-neutral-50;
   }
+
   h3 {
     @apply text-2xl font-bold text-neutral-50;
   }

@@ -14,9 +14,9 @@
       />
     </div>
     <div class="latest-blocks-transactions">
-      <div>
+      <div class="rounded">
         <div class="batches-label-container">
-          <p>{{ t("blockExplorer.batches") }}</p>
+          {{ t("blockExplorer.batches") }}
           <InfoTooltip class="batches-tooltip">{{ t("batches.tooltipInfo") }}</InfoTooltip>
         </div>
         <TableBatches
@@ -35,7 +35,9 @@
         </span>
       </div>
       <div>
-        <p>{{ t("blockExplorer.latestTransactions") }}</p>
+        <div class="batches-label-container">
+          {{ t("blockExplorer.latestTransactions") }}
+        </div>
         <TransactionsTable
           class="transactions-table"
           :columns="['status', 'transactionHash', 'age']"
@@ -81,13 +83,13 @@ getBatches(1, new Date());
 
 <style lang="scss" scoped>
 .home {
-  @apply mt-4;
+  @apply mt-8 sm:mt-16;
 
   .title {
-    @apply text-4xl font-bold text-white;
+    @apply text-center text-4xl font-bold text-purple-900;
   }
   .subtitle {
-    @apply mt-2 text-base text-white sm:text-2xl;
+    @apply mx-auto mt-8 w-full max-w-4xl text-center text-base sm:text-xl;
   }
 
   .section {
@@ -98,11 +100,11 @@ getBatches(1, new Date());
   }
 
   .search-form {
-    @apply mt-6 max-w-xl sm:mt-14 lg:mt-9;
+    @apply mx-auto mt-6 w-full max-w-xl sm:mt-14 lg:mt-9;
   }
 
   .latest-blocks-transactions {
-    @apply mb-0.5 mt-9 block gap-x-5 lg:flex;
+    @apply mb-1 mt-16 block gap-x-5 lg:flex;
     > div:first-child {
       @apply mb-9 lg:mb-0;
     }
@@ -116,10 +118,7 @@ getBatches(1, new Date());
       @apply h-full;
     }
     .batches-label-container {
-      @apply flex items-center gap-x-1;
-      .batches-tooltip {
-        @apply mb-3;
-      }
+      @apply mb-2 flex items-center gap-x-1 text-xl font-bold;
     }
   }
 

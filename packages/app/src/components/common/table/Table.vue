@@ -60,7 +60,7 @@ defineProps({
     @apply w-full overflow-auto;
 
     & > table > thead tr {
-      @apply absolute left-[-9999px] top-[-9999px] md:relative md:left-0 md:top-0;
+      @apply hidden md:relative md:left-0 md:top-0 md:table-row;
     }
   }
   &.has-head {
@@ -88,14 +88,16 @@ defineProps({
 
     thead {
       @apply md:border-b;
-
-      tr th {
-        @apply bg-gray-100;
-      }
     }
     tbody {
       tr {
-        @apply transition last:border-b-0 odd:bg-white even:bg-gray-50 md:border-b;
+        @apply transition odd:bg-white even:bg-gray-50;
+        a {
+          @apply no-underline;
+          &:hover {
+            @apply text-purple-500;
+          }
+        }
       }
     }
   }

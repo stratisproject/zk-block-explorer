@@ -35,7 +35,7 @@ defineProps({
   .breadcrumb-item {
     .breadcrumb-item-link,
     .breadcrumb-item-active {
-      @apply text-sm leading-tight text-gray-200;
+      @apply text-sm leading-tight text-neutral-400;
     }
     .breadcrumb-item-link {
       @apply no-underline hover:underline;

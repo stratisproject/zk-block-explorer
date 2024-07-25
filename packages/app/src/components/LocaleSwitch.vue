@@ -66,14 +66,14 @@ const selected = computed<Locale>({
   @apply relative;
 
   .language-list-wrapper {
-    @apply absolute right-0 top-full h-auto w-full lg:w-[60px];
+    @apply absolute right-0 top-full h-auto w-full;
   }
   .language-list {
-    @apply absolute right-0 top-1 z-10 mb-1 max-h-56 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm;
+    @apply absolute right-0 top-1 z-10 mb-1 flex max-h-56 w-full flex-col gap-1 overflow-auto rounded-md border-t-4 border-primary-800 bg-white p-2 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm lg:w-fit;
   }
 
   .language-list-item {
-    @apply flex items-center px-3 py-2 text-neutral-900 lg:py-1;
+    @apply flex items-center rounded px-3 py-2 text-neutral-900;
     &:not(.selected) {
       cursor: pointer;
     }
@@ -89,7 +89,7 @@ const selected = computed<Locale>({
       @apply mr-2 h-[18px] w-[18px] flex-shrink-0;
     }
     .language-list-item-label {
-      @apply w-full font-sans text-base font-normal text-neutral-700;
+      @apply w-full font-sans text-sm font-normal text-neutral-700;
       &:not(.selected) {
         cursor: pointer;
       }
@@ -106,7 +106,7 @@ const selected = computed<Locale>({
         @apply h-4 w-4 flex-shrink-0;
       }
       .selected-language-label {
-        @apply block truncate;
+        @apply block truncate text-sm;
       }
     }
   }

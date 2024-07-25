@@ -48,13 +48,13 @@
         </div>
       </div>
     </div>
-    <div
+    <!-- <div
       v-if="hasContent"
       class="hero-banner-container"
       :class="[`${currentNetwork.name}`, { 'home-banner': route.path === '/' }]"
     >
       <hero-arrows class="hero-image" />
-    </div>
+    </div> -->
     <transition
       enter-active-class="duration-200 ease-out"
       enter-from-class="scale-95 opacity-0"
@@ -68,7 +68,7 @@
           <div class="mobile-header-container">
             <div class="mobile-popover-navigation">
               <div class="popover-zksync-logo">
-                <zk-sync class="logo" />
+                <zk-sync-era class="logo" />
               </div>
               <div class="-mr-2">
                 <PopoverButton class="close-popover-button">
@@ -226,12 +226,12 @@ const hasContent = computed(() => {
 
 <style lang="scss">
 .header-popover-container {
-  @apply relative bg-primary-900;
+  @apply relative bg-white shadow;
   .header-wrap {
     @apply container z-50;
   }
   .header-container {
-    @apply flex items-center justify-between border-b border-neutral-500 py-4 md:space-x-10 lg:justify-start;
+    @apply flex items-center justify-between py-4 md:space-x-10 lg:justify-start;
   }
   .logo-container {
     @apply flex justify-start;
@@ -239,7 +239,7 @@ const hasContent = computed(() => {
   .burger-button-container {
     @apply -my-2 -mr-2 lg:hidden;
     .burger-button {
-      @apply inline-flex items-center justify-center rounded-md border border-neutral-400 p-2 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-500;
+      @apply inline-flex items-center justify-center rounded-md border border-neutral-400 p-2 text-neutral-400 outline-none hover:bg-neutral-100 hover:text-neutral-500;
     }
   }
   .navigation-container {
@@ -251,7 +251,7 @@ const hasContent = computed(() => {
       .navigation-link {
         @apply flex items-center;
         &.active {
-          @apply bg-primary-800;
+          @apply text-primary-800;
 
           .dropdown-icon {
             @apply -rotate-180;
@@ -263,10 +263,10 @@ const hasContent = computed(() => {
         }
       }
       .dropdown-items {
-        @apply absolute left-0 mt-1 grid w-80 origin-top-left grid-flow-row gap-4 rounded-md bg-white p-4 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none;
+        @apply absolute left-0 mt-1 grid w-60 origin-top-left grid-flow-row gap-1 rounded-md border-t-4 border-primary-800 bg-white p-4 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none;
 
         .dropdown-item {
-          @apply block rounded-md p-2 text-sm text-black no-underline;
+          @apply block rounded-md p-3 text-sm text-black no-underline;
           &.router-link-exact-active {
             @apply bg-primary-100;
           }
@@ -274,7 +274,7 @@ const hasContent = computed(() => {
       }
     }
     .navigation-link {
-      @apply rounded-md py-2.5 text-base font-medium text-white no-underline hover:bg-primary-800 md:px-3.5;
+      @apply rounded-md py-2.5 text-base font-medium text-neutral-500 no-underline hover:text-primary-800 md:px-3.5;
     }
 
     .router-link-exact-active {
@@ -295,6 +295,9 @@ const hasContent = computed(() => {
 
       a {
         @apply ml-4 first:ml-0;
+        path {
+          @apply fill-primary-600;
+        }
       }
     }
   }

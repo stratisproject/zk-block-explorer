@@ -89,15 +89,15 @@ const subtitle = computed(() =>
     @apply text-xl font-bold text-neutral-700;
   }
   .subtitle {
-    @apply font-sans text-base text-neutral-400;
+    @apply mt-1 font-sans text-base text-neutral-400;
   }
   .stats-container {
-    @apply flex flex-col border-neutral-200 py-3 pr-8 text-xl text-neutral-500 last:border-0 last:pb-0 sm:border-r sm:py-0 lg:w-max;
+    @apply flex flex-col border-neutral-200 py-3 pr-8 text-xl  last:border-0 last:pb-0 sm:border-r sm:py-0 lg:w-max;
     dd {
-      @apply text-[1.65rem] font-bold text-primary-800 xl:text-3xl;
+      @apply text-2xl font-bold text-purple-900;
     }
     a {
-      @apply text-inherit no-underline;
+      @apply text-base font-bold text-neutral-500 no-underline;
     }
   }
   .description-list {

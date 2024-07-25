@@ -32,12 +32,12 @@ defineProps({
 .tippy-box {
   @apply rounded-lg text-sm;
   &[data-theme~="light"] {
-    @apply bg-neutral-400 text-white;
+    @apply bg-primary-900 text-white;
     &[data-placement^="top"] > .tippy-arrow:before {
-      @apply border-t-neutral-400;
+      @apply border-t-primary-900;
     }
     &[data-placement^="bottom"] > .tippy-arrow:before {
-      @apply border-b-neutral-400;
+      @apply border-b-primary-900;
     }
   }
 }

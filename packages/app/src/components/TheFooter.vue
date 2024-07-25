@@ -1,7 +1,7 @@
 <template>
   <footer>
     <div class="footer-container">
-      <div class="links-container">
+      <div class="links-container z-10">
         <a v-for="item in navigation" :key="item.label" :href="item.url" target="_blank" rel="noopener">
           {{ item.label }}
         </a>
@@ -39,7 +39,7 @@ const navigation = reactive([
 
 <style scoped lang="scss">
 .footer-container {
-  @apply container py-12 text-neutral-400 md:flex md:items-center md:justify-between;
+  @apply container w-full py-8 text-neutral-400 md:flex md:items-center md:justify-between;
 
   .links-container {
     @apply flex justify-center space-x-6 md:order-1;

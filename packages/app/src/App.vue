@@ -1,7 +1,7 @@
 <template>
   <template v-if="isReady">
     <the-header :class="$route?.name" />
-    <div class="container-app">
+    <div class="container-app z-10">
       <IndexerDelayAlert v-if="!currentNetwork.maintenance && currentNetwork.name === 'mainnet'" />
       <MaintenanceView v-if="currentNetwork.maintenance" />
       <router-view v-else />

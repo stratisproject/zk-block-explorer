@@ -76,11 +76,11 @@ const getNetworkUrl = (network: NetworkConfig) => {
     @apply absolute right-0 top-full h-auto w-full lg:w-[260px];
   }
   .network-list {
-    @apply absolute right-0 top-1 z-10 mb-1 max-h-56 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm;
+    @apply absolute right-0 top-1 z-10 mb-1 flex max-h-56 w-full flex-col gap-1 overflow-auto rounded-md border-t-4 border-primary-800 bg-white p-4 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm;
   }
 
   .network-list-item-container {
-    @apply flex items-center gap-2 px-3 py-2 text-neutral-900 lg:py-1;
+    @apply flex items-center gap-2 rounded p-3 text-neutral-900;
     &:not(.selected) {
       cursor: pointer;
     }
@@ -104,12 +104,12 @@ const getNetworkUrl = (network: NetworkConfig) => {
     @apply relative flex w-full min-w-[125px] items-center rounded-md border border-neutral-300 bg-white px-2 py-2 font-sans text-base text-neutral-700 hover:cursor-pointer focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 lg:border-primary-800 lg:bg-primary-800 lg:text-white;
   }
   .network-item {
-    @apply mr-4 flex items-center gap-1;
+    @apply mr-4 flex items-center gap-2;
     .network-item-img {
-      @apply h-4 w-4 flex-shrink-0;
+      @apply h-5 w-5 flex-shrink-0;
     }
     .network-item-label {
-      @apply block truncate;
+      @apply block truncate text-sm;
     }
   }
 
