@@ -46,10 +46,10 @@ export default (context = useContext()) => {
         url.searchParams.set("toDate", params.toDate.toISOString());
       }
       if (params.page > 0) {
-        url.searchParams.set("page", params.page.toString());
+        url.searchParams.set("page", String(params.page));
       }
       if (params.pageSize > 0) {
-        url.searchParams.set("limit", params.pageSize.toString());
+        url.searchParams.set("limit", String(params.pageSize));
       }
 
       const response = await $fetch<Api.Response.Collection<Log>>(url.toString());

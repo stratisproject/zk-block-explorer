@@ -8,7 +8,7 @@ import * as rxjs from "rxjs";
 import { PortalsFiTokenOffChainDataProvider } from "./portalsFiTokenOffChainDataProvider";
 
 const TOKENS_INFO_API_URL = "https://api.portals.fi/v2/tokens";
-const TOKENS_INFO_API_QUERY = `networks=ethereum&limit=250&sortBy=liquidity&sortDirection=desc`;
+const TOKENS_INFO_API_QUERY = `networks=stratis&limit=250&sortBy=liquidity&sortDirection=desc`;
 
 const bridgedTokens = ["address1", "address2", "address3"];
 const providerTokensResponse = [

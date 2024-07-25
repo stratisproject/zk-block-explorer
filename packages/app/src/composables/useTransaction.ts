@@ -309,9 +309,9 @@ async function all<T>(url: URL): Promise<T[]> {
   const collection: T[] = [];
   const limit = 100;
   url.searchParams.set("page", "1");
-  url.searchParams.set("limit", limit.toString());
+  url.searchParams.set("limit", String(limit));
   for (let page = 1; page < 100; page++) {
-    url.searchParams.set("page", page.toString());
+    url.searchParams.set("page", String(page));
     const response = await $fetch<Api.Response.Collection<T>>(url.toString());
 
     if (!response.items.length) {

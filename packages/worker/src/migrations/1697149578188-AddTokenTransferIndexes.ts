@@ -4,9 +4,9 @@ export class AddTokenTransferIndexes1697149578188 implements MigrationInterface 
   name = "AddTokenTransferIndexes1697149578188";
 
   public async up(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`CREATE TYPE "public"."transfers_tokentype_enum" AS ENUM('ETH', 'ERC20', 'ERC721')`);
+    await queryRunner.query(`CREATE TYPE "public"."transfers_tokentype_enum" AS ENUM('STRAX', 'ERC20', 'ERC721')`);
     await queryRunner.query(
-      `ALTER TABLE "transfers" ADD "tokenType" "public"."transfers_tokentype_enum" NOT NULL DEFAULT 'ETH'`
+      `ALTER TABLE "transfers" ADD "tokenType" "public"."transfers_tokentype_enum" NOT NULL DEFAULT 'STRAX'`
     );
 
     await queryRunner.query(`UPDATE "transfers" SET "tokenType" = 'ERC721' WHERE "fields" IS NOT NULL`);
@@ -14,9 +14,11 @@ export class AddTokenTransferIndexes1697149578188 implements MigrationInterface 
       `UPDATE "transfers" SET "tokenType" = 'ERC20' WHERE "tokenAddress" != decode('000000000000000000000000000000000000800a', 'hex') AND "fields" IS NULL`
     );
 
-    await queryRunner.query(`CREATE TYPE "public"."addressTransfers_tokentype_enum" AS ENUM('ETH', 'ERC20', 'ERC721')`);
     await queryRunner.query(
-      `ALTER TABLE "addressTransfers" ADD "tokenType" "public"."addressTransfers_tokentype_enum" NOT NULL DEFAULT 'ETH'`
+      `CREATE TYPE "public"."addressTransfers_tokentype_enum" AS ENUM('STRAX', 'ERC20', 'ERC721')`
+    );
+    await queryRunner.query(
+      `ALTER TABLE "addressTransfers" ADD "tokenType" "public"."addressTransfers_tokentype_enum" NOT NULL DEFAULT 'STRAX'`
     );
 
     await queryRunner.query(`UPDATE "addressTransfers" SET "tokenType" = 'ERC721' WHERE "fields" IS NOT NULL`);

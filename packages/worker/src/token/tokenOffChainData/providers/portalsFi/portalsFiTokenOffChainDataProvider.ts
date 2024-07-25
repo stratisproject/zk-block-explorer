@@ -94,7 +94,7 @@ export class PortalsFiTokenOffChainDataProvider implements TokenOffChainDataProv
 
   private async getTokensOffChainDataPage({ page }: { page: number }): Promise<ITokensOffChainDataPage> {
     const query = {
-      networks: "ethereum",
+      networks: "stratis",
       limit: "250",
       sortBy: "liquidity",
       sortDirection: "desc",

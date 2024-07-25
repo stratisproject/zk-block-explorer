@@ -52,9 +52,9 @@ export class CoingeckoTokenOffChainDataProvider implements TokenOffChainDataProv
     // Include ETH, all zksync L2 tokens and bridged tokens
     const supportedTokens = tokensList.filter(
       (token) =>
-        token.id === "ethereum" ||
+        token.id === "stratis" ||
         token.platforms.zksync ||
-        bridgedTokensToInclude.find((bridgetTokenAddress) => bridgetTokenAddress === token.platforms.ethereum)
+        bridgedTokensToInclude.find((bridgetTokenAddress) => bridgetTokenAddress === token.platforms.stratis)
     );
 
     const tokensOffChainData: ITokenOffChainData[] = [];
@@ -67,7 +67,7 @@ export class CoingeckoTokenOffChainDataProvider implements TokenOffChainDataProv
           ...tokensMarkedData.map((tokenMarketData) => {
             const token = supportedTokens.find((t) => t.id === tokenMarketData.id);
             return {
-              l1Address: token.id === "ethereum" ? utils.ETH_ADDRESS : token.platforms.ethereum,
+              l1Address: token.id === "stratis" ? utils.ETH_ADDRESS : token.platforms.stratis,
               l2Address: token.platforms.zksync,
               liquidity: tokenMarketData.market_cap,
               usdPrice: tokenMarketData.current_price,
@@ -105,13 +105,13 @@ export class CoingeckoTokenOffChainDataProvider implements TokenOffChainDataProv
       return [];
     }
     return list
-      .filter((item) => item.id === "ethereum" || item.platforms.zksync || item.platforms.ethereum)
+      .filter((item) => item.id === "stratis" || item.platforms.zksync || item.platforms.stratis)
       .map((item) => ({
         ...item,
         platforms: {
           // use substring(0, 42) to fix some instances when after address there is some additional text
           zksync: item.platforms.zksync?.substring(0, 42),
-          ethereum: item.platforms.ethereum?.substring(0, 42),
+          stratis: item.platforms.stratis?.substring(0, 42),
         },
       }));
   }
@@ -165,9 +165,7 @@ export class CoingeckoTokenOffChainDataProvider implements TokenOffChainDataProv
         ? {
             x_cg_pro_api_key: this.apiKey,
           }
-        : {
-            x_cg_demo_api_key: this.apiKey,
-          }),
+        : {}),
     }).toString();
 
     const { data } = await firstValueFrom<{ data: T }>(

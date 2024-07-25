@@ -21,7 +21,7 @@ export interface Token {
 }
 
 export enum TokenType {
-  ETH = "ETH",
+  ETH = "STRAX",
   ERC20 = "ERC20",
   ERC721 = "ERC721",
 }

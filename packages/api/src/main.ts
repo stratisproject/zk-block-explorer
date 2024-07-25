@@ -43,7 +43,7 @@ async function bootstrap() {
   configureApp(app);
   app.enableShutdownHooks();
 
-  await app.listen(configService.get<number>("port"));
-  await metricsApp.listen(configService.get<number>("metrics.port"));
+  await app.listen(configService.get<number>("port"), "127.0.0.1");
+  await metricsApp.listen(configService.get<number>("metrics.port"), "127.0.0.1");
 }
 bootstrap();
