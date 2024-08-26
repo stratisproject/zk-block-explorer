@@ -1,7 +1,7 @@
 {
   "general": {
     "l2NetworkName": "zkSync Stratis",
-    "l1NetworkName": "Ethereum"
+    "l1NetworkName": "Stratis"
   },
   "copyButton": {
     "tooltip": "Скопійовано!"
