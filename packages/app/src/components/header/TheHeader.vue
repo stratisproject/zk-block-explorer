@@ -17,7 +17,7 @@
         <PopoverGroup as="nav" class="navigation-container">
           <LinksPopover :label="t('header.nav.blockExplorer')" :items="blockExplorerLinks" />
           <LinksPopover :label="t('header.nav.tools')" :items="toolsLinks" />
-          <a
+          <!-- <a
             v-for="item in navigation"
             :key="item.label"
             :href="item.url"
@@ -26,7 +26,7 @@
             class="navigation-link"
           >
             {{ item.label }}
-          </a>
+          </a> -->
         </PopoverGroup>
         <div class="header-right-side">
           <NetworkSwitch />
@@ -87,7 +87,7 @@
                   <LinksMobilePopover :items="toolsLinks" />
                 </div>
                 <div class="mobile-navigation-divider"></div>
-                <div class="mobile-navigation">
+                <!-- <div class="mobile-navigation">
                   <a
                     v-for="item in navigation"
                     :key="item.label"
@@ -100,7 +100,7 @@
                       {{ item.label }}
                     </span>
                   </a>
-                </div>
+                </div> -->
               </nav>
             </div>
             <div class="mobile-network-switch-container">
@@ -203,8 +203,8 @@ if (currentNetwork.value.bridgeUrl) {
 const toolsLinks = reactive(links);
 
 const socials = [
-  { url: "https://join.zksync.dev/", component: DiscordIcon },
-  { url: "https://twitter.com/zksync", component: TwitterIcon },
+  { url: "https://discordapp.com/invite/9tDyfZs", component: DiscordIcon },
+  { url: "https://twitter.com/stratisplatform", component: TwitterIcon },
 ];
 
 const hasContent = computed(() => {

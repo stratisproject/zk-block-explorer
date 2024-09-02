@@ -6,9 +6,9 @@
           {{ item.label }}
         </a>
       </div>
-      <div class="version-text-container">
+      <!-- <div class="version-text-container">
         <p>{{ config.version }}</p>
-      </div>
+      </div> -->
     </div>
   </footer>
 </template>
@@ -22,18 +22,18 @@ const { t } = useI18n();
 const config = useRuntimeConfig();
 
 const navigation = reactive([
-  {
-    label: computed(() => t("footer.nav.docs")),
-    url: "https://docs.zksync.io/build/tooling/block-explorer/getting-started.html",
-  },
+  // {
+  //   label: computed(() => t("footer.nav.docs")),
+  //   url: "https://docs.zksync.io/build/tooling/block-explorer/getting-started.html",
+  // },
   {
     label: computed(() => t("footer.nav.terms")),
-    url: "https://zksync.io/terms",
+    url: "https://verium.stratisplatform.com/terms",
   },
-  {
-    label: computed(() => t("footer.nav.contact")),
-    url: "https://zksync.io/contact",
-  },
+  // {
+  //   label: computed(() => t("footer.nav.contact")),
+  //   url: "https://zksync.io/contact",
+  // },
 ]);
 </script>
 
