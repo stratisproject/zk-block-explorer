@@ -1,6 +1,6 @@
 {
   "general": {
-    "l2NetworkName": "zkSync Stratis",
+    "l2NetworkName": "zkStratis",
     "l1NetworkName": "Stratis"
   },
   "copyButton": {
@@ -15,7 +15,7 @@
   "networkStats": {
     "title": "Network Stats",
     "subtitleTestnet": "Stats are occasionally reset on testnet.",
-    "subtitleMainnet": "zkSync Stratis Mainnet is open to everyone.",
+    "subtitleMainnet": "zkStratis Mainnet is open to everyone.",
     "committed": "Committed Blocks",
     "verified": "Verified Blocks",
     "transactions": "Transactions",
@@ -309,8 +309,8 @@
     "subtitle": "zkRollups significantly cheaper than L1 or Optimistic Rollups"
   },
   "blockExplorer": {
-    "title": "zkSync Stratis Block Explorer",
-    "subtitle": "zkSync Stratis Block Explorer provides all the information to deep dive into transactions, blocks, contracts, and much more. Deep dive into zkSync Stratis and explore the network.",
+    "title": "zkStratis Block Explorer",
+    "subtitle": "zkStratis Block Explorer provides all the information to deep dive into transactions, blocks, contracts, and much more. Deep dive into zkStratis and explore the network.",
     "latestBlocks": "Latest Blocks",
     "latestTransactions": "Latest Transactions",
     "batches": "Latest Batches"
@@ -407,7 +407,7 @@
   },
   "contractVerification": {
     "title": "Smart Contract Verification",
-    "subtitle": "Source code verification provides transparency for users interacting with smart contracts. By uploading the source code, Stratis Explorer will match the compiled code with that on the blockchain.",
+    "subtitle": "Source code verification provides transparency for users interacting with smart contracts. By uploading the source code, zkStratis Explorer will match the compiled code with that on the blockchain.",
     "resources": {
       "title": "You can also verify your smart-contract using {hardhat}",
       "links": {
@@ -664,7 +664,7 @@
     }
   },
   "document": {
-    "title": "zkSync Stratis Block Explorer",
+    "title": "zStratis Block Explorer",
     "home": "Transactions, Blocks, Contracts and much more"
   },
   "notFound": {
@@ -674,11 +674,11 @@
     "contactSupport": "contact support"
   },
   "maintenance": {
-    "title": "zkSync {network} is on maintainance",
-    "description": "zkSync {network} is unavailable due to maintainance, you can find updates in our {twitter} or on {uptime}",
-    "twitterLink": "zkSync Developers",
+    "title": "zk{network} is on maintainance",
+    "description": "zk{network} is unavailable due to maintainance, you can find updates in our {twitter} or on {uptime}",
+    "twitterLink": "Developers",
     "uptimeLink": "UpTime",
-    "twitterButton": "zkSync Developers"
+    "twitterButton": "Developers"
   },
   "tabs": {
     "transactions": "Transactions",

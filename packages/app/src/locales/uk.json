@@ -1,6 +1,6 @@
 {
   "general": {
-    "l2NetworkName": "zkSync Stratis",
+    "l2NetworkName": "zkStratis",
     "l1NetworkName": "Stratis"
   },
   "copyButton": {
@@ -175,7 +175,7 @@
     "subtitle": "zkRollups значно дешевше, ніж L1 або Optimistic Rollups"
   },
   "blockExplorer": {
-    "title": "zkSync Stratis Провідник",
+    "title": "zkStratis Провідник",
     "subtitle": "Переглядайте в режимі реального часу інформацію про блоки, транзакції, контракти та іншу активність у мережі.",
     "latestBlocks": "Останні Блоки",
     "latestTransactions": "Останні транзакції"
@@ -217,7 +217,7 @@
   },
   "contractVerification": {
     "title": "Верифікація Смарт контракту",
-    "subtitle": "Перевірка вихідного коду забезпечує прозорість для користувачів, які взаємодіють зі смарт-контрактами. Завантаживши вихідний код, Stratis Explorer зіставить скомпільований код із кодом у блокчейні.",
+    "subtitle": "Перевірка вихідного коду забезпечує прозорість для користувачів, які взаємодіють зі смарт-контрактами. Завантаживши вихідний код, zkStratis Explorer зіставить скомпільований код із кодом у блокчейні.",
     "form": {
       "title": "Деталі Контракту",
       "compilationInfo": "Деталі компіляції",
@@ -401,7 +401,7 @@
     }
   },
   "document": {
-    "title": "zkSync Stratis Провідник",
+    "title": "zkStratis Провідник",
     "home": "Транзакції, Блоки, Контракти та інше"
   },
   "notFound": {
