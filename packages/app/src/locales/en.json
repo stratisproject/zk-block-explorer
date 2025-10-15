@@ -1,7 +1,7 @@
 {
   "general": {
-    "l2NetworkName": "zkStratis",
-    "l1NetworkName": "Stratis"
+    "l2NetworkName": "zkXertra",
+    "l1NetworkName": "Xertra"
   },
   "copyButton": {
     "tooltip": "Copied!"
@@ -15,7 +15,7 @@
   "networkStats": {
     "title": "Network Stats",
     "subtitleTestnet": "Stats are occasionally reset on testnet.",
-    "subtitleMainnet": "zkStratis Mainnet is open to everyone.",
+    "subtitleMainnet": "zkXertra Mainnet is open to everyone.",
     "committed": "Committed Blocks",
     "verified": "Verified Blocks",
     "transactions": "Transactions",
@@ -309,8 +309,8 @@
     "subtitle": "zkRollups significantly cheaper than L1 or Optimistic Rollups"
   },
   "blockExplorer": {
-    "title": "zkStratis Block Explorer",
-    "subtitle": "zkStratis Block Explorer provides all the information to deep dive into transactions, blocks, contracts, and much more. Deep dive into zkStratis and explore the network.",
+    "title": "zkXertra Block Explorer",
+    "subtitle": "zkXertra Block Explorer provides all the information to deep dive into transactions, blocks, contracts, and much more. Deep dive into zkXertra and explore the network.",
     "latestBlocks": "Latest Blocks",
     "latestTransactions": "Latest Transactions",
     "batches": "Latest Batches"
@@ -407,7 +407,7 @@
   },
   "contractVerification": {
     "title": "Smart Contract Verification",
-    "subtitle": "Source code verification provides transparency for users interacting with smart contracts. By uploading the source code, zkStratis Explorer will match the compiled code with that on the blockchain.",
+    "subtitle": "Source code verification provides transparency for users interacting with smart contracts. By uploading the source code, zkXertra Explorer will match the compiled code with that on the blockchain.",
     "resources": {
       "title": "You can also verify your smart-contract using {hardhat}",
       "links": {
@@ -664,7 +664,7 @@
     }
   },
   "document": {
-    "title": "zStratis Block Explorer",
+    "title": "zkXertra Block Explorer",
     "home": "Transactions, Blocks, Contracts and much more"
   },
   "notFound": {

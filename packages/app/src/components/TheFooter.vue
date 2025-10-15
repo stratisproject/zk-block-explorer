@@ -28,7 +28,7 @@ const navigation = reactive([
   // },
   {
     label: computed(() => t("footer.nav.terms")),
-    url: "https://verium.stratisplatform.com/terms",
+    url: "https://verium.xertra.com/terms",
   },
   // {
   //   label: computed(() => t("footer.nav.contact")),

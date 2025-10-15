@@ -78,7 +78,7 @@ defineProps({
 });
 
 const subtitle = computed(() =>
-  currentNetwork.value.name === "zkStratis" ? t("networkStats.subtitleMainnet") : t("networkStats.subtitleTestnet")
+  currentNetwork.value.name === "zkXertra" ? t("networkStats.subtitleMainnet") : t("networkStats.subtitleTestnet")
 );
 </script>
 

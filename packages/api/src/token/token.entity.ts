@@ -12,7 +12,7 @@ export const ETH_TOKEN: Token = {
   l2Address: "0x000000000000000000000000000000000000800A",
   l1Address: "0x0000000000000000000000000000000000000000",
   symbol: "STRAX",
-  name: "Stratis",
+  name: "STRAX",
   decimals: 18,
   // Fallback data in case STRAX token is not in the DB
   iconURL: "https://assets.coingecko.com/coins/images/531/thumb/stratis.png?1696501751",
