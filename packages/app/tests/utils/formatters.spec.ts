@@ -5,12 +5,14 @@ import type { Address } from "@/types";
 import {
   checksumAddress,
   convert,
+  formatAddressFromHash,
   formatBigNumberish,
   formatHexDecimals,
   formatMoney,
   formatPrice,
   formatPricePretty,
   formatWithSpaces,
+  numberToHexString,
   shortValue,
   stringFromAsciiArray,
 } from "@/utils/formatters";
@@ -44,7 +46,7 @@ describe("formatters:", () => {
     );
   });
   it("returns formatted Hex data", () => {
-    expect(formatHexDecimals("32770", "Hex")).toBe("0x032770");
+    expect(formatHexDecimals("32770", "Hex")).toBe("0x32770");
   });
   it("returns formatted token price", () => {
     expect(formatPricePretty("1", 1, "12.5315131")).toBe("$1.25");
@@ -78,6 +80,38 @@ describe("formatters:", () => {
     });
     it("handles float price", () => {
       expect(convert("0x56bc75e2d63100000", token, "0.001")).toBe("0.1");
+    });
+  });
+
+  describe("numberToHexString", () => {
+    it("returns hex str for the specified number", () => {
+      expect(numberToHexString(1000)).toBe("0x3e8");
+    });
+
+    it("returns hex str for the specified bigint", () => {
+      expect(numberToHexString(BigInt("1000000000000000000000000"))).toBe("0xd3c21bcecceda1000000");
+    });
+  });
+
+  describe("formatAddressFromHash", () => {
+    it("returns empty string for empty hash", () => {
+      expect(formatAddressFromHash("0x")).toBe("0x0000000000000000000000000000000000000000");
+    });
+
+    it("returns formatted address from hash for zero address", () => {
+      expect(formatAddressFromHash("0x0000000000000000000000000000000000000000000000000000000000000000")).toBe(
+        "0x0000000000000000000000000000000000000000"
+      );
+    });
+
+    it("return formatted valid address", () => {
+      expect(formatAddressFromHash("0x000000000000000000000000085b8b6407f150d62adb1ef926f7f304600ec714")).toBe(
+        "0x085b8b6407f150d62adb1ef926f7f304600ec714"
+      );
+    });
+
+    it("returns null for invalid hash", () => {
+      expect(formatAddressFromHash("0x000000000000000000000000085b8b6407f150d62adb1ef926f7f304600ec7141")).toBe("");
     });
   });
 });

@@ -2,9 +2,9 @@ import { Test } from "@nestjs/testing";
 import { Logger } from "@nestjs/common";
 import { EventEmitter2 } from "@nestjs/event-emitter";
 import { ConfigService } from "@nestjs/config";
-import { types } from "zksync-web3";
 import { mock } from "jest-mock-extended";
 import { MoreThanOrEqual, LessThanOrEqual, Between } from "typeorm";
+import { type Block as BlockchainBlock } from "ethers";
 import { UnitOfWork } from "../unitOfWork";
 import { BlockWatcher } from "./block.watcher";
 import { BlockData } from "../dataFetcher/types";
@@ -16,8 +16,7 @@ import { Block } from "../entities";
 import { BlockRepository, LogRepository, TransferRepository } from "../repositories";
 import { BLOCKS_REVERT_DETECTED_EVENT } from "../constants";
 import { BlockProcessor } from "./block.processor";
-import { unixTimeToDateString } from "../utils/date";
-import { Transfer, Balance } from "../dataFetcher/types";
+import { Balance } from "../dataFetcher/types";
 
 describe("BlockProcessor", () => {
   let blockProcessor: BlockProcessor;
@@ -153,7 +152,7 @@ describe("BlockProcessor", () => {
   describe("processNextBlockRange", () => {
     it("fetches the last block from the DB", async () => {
       await blockProcessor.processNextBlocksRange();
-      expect(blockRepositoryMock.getLastBlock).toHaveBeenCalledWith({
+      expect(blockRepositoryMock.getBlock).toHaveBeenCalledWith({
         where: {},
         select: { number: true, hash: true },
       });
@@ -168,7 +167,7 @@ describe("BlockProcessor", () => {
 
         blockProcessor = await getBlockProcessor();
         await blockProcessor.processNextBlocksRange();
-        expect(blockRepositoryMock.getLastBlock).toHaveBeenCalledWith({
+        expect(blockRepositoryMock.getBlock).toHaveBeenCalledWith({
           where: {
             number: Between(100, 1000),
           },
@@ -186,7 +185,7 @@ describe("BlockProcessor", () => {
 
         const blockProcessor = await getBlockProcessor();
         await blockProcessor.processNextBlocksRange();
-        expect(blockRepositoryMock.getLastBlock).toHaveBeenCalledWith({
+        expect(blockRepositoryMock.getBlock).toHaveBeenCalledWith({
           where: {
             number: MoreThanOrEqual(100),
           },
@@ -204,7 +203,7 @@ describe("BlockProcessor", () => {
 
         const blockProcessor = await getBlockProcessor();
         await blockProcessor.processNextBlocksRange();
-        expect(blockRepositoryMock.getLastBlock).toHaveBeenCalledWith({
+        expect(blockRepositoryMock.getBlock).toHaveBeenCalledWith({
           where: {
             number: LessThanOrEqual(1000),
           },
@@ -224,7 +223,7 @@ describe("BlockProcessor", () => {
         number: 100,
         hash: "hash",
       });
-      jest.spyOn(blockRepositoryMock, "getLastBlock").mockResolvedValue(lastDbBlock);
+      jest.spyOn(blockRepositoryMock, "getBlock").mockResolvedValue(lastDbBlock);
 
       await blockProcessor.processNextBlocksRange();
       expect(blockWatcherMock.getNextBlocksToProcess).toHaveBeenCalledWith(lastDbBlock.number);
@@ -245,7 +244,7 @@ describe("BlockProcessor", () => {
               number: 100,
               hash: "another-hash",
             });
-            jest.spyOn(blockRepositoryMock, "getLastBlock").mockResolvedValue(lastDbBlock);
+            jest.spyOn(blockRepositoryMock, "getBlock").mockResolvedValue(lastDbBlock);
           });
 
           it("triggers blocks revert event and returns false", async () => {
@@ -276,7 +275,7 @@ describe("BlockProcessor", () => {
               number: 100,
               hash: "hash",
             });
-            jest.spyOn(blockRepositoryMock, "getLastBlock").mockResolvedValue(lastDbBlock);
+            jest.spyOn(blockRepositoryMock, "getBlock").mockResolvedValue(lastDbBlock);
 
             const isNextBlockRangeProcessed = await blockProcessor.processNextBlocksRange();
             expect(eventEmitterMock.emit).not.toBeCalled();
@@ -290,8 +289,28 @@ describe("BlockProcessor", () => {
               number: 100,
               hash: "hash",
             });
-            jest.spyOn(blockRepositoryMock, "getLastBlock").mockResolvedValue(lastDbBlock);
+            jest.spyOn(blockRepositoryMock, "getBlock").mockResolvedValue(lastDbBlock);
             jest.spyOn(blockchainServiceMock, "getBlock").mockResolvedValue(null);
+          });
+
+          it("doesn't trigger blocks revert event and returns false", async () => {
+            const isNextBlockRangeProcessed = await blockProcessor.processNextBlocksRange();
+            expect(eventEmitterMock.emit).not.toBeCalled();
+            expect(isNextBlockRangeProcessed).toBeFalsy();
+          });
+        });
+
+        describe("and the last db block hash doesn't match the same block hash from blockchain", () => {
+          beforeEach(() => {
+            const lastDbBlock = mock<Block>({
+              number: 100,
+              hash: "hash",
+            });
+            jest.spyOn(blockRepositoryMock, "getBlock").mockResolvedValue(lastDbBlock);
+            jest.spyOn(blockchainServiceMock, "getBlock").mockResolvedValue({
+              number: 100,
+              hash: "another-hash",
+            } as BlockchainBlock);
           });
 
           it("triggers blocks revert event and returns false", async () => {
@@ -300,19 +319,6 @@ describe("BlockProcessor", () => {
               detectedIncorrectBlockNumber: 100,
             });
             expect(isNextBlockRangeProcessed).toBeFalsy();
-          });
-
-          describe("when blocks revert is disabled", () => {
-            it("does not trigger the revert event", async () => {
-              (configServiceMock.get as jest.Mock)
-                .mockReturnValueOnce(null)
-                .mockReturnValueOnce(null)
-                .mockReturnValueOnce(true);
-              blockProcessor = await getBlockProcessor();
-              const isNextBlockRangeProcessed = await blockProcessor.processNextBlocksRange();
-              expect(eventEmitterMock.emit).not.toBeCalled();
-              expect(isNextBlockRangeProcessed).toBeFalsy();
-            });
           });
         });
       });
@@ -324,7 +330,8 @@ describe("BlockProcessor", () => {
           jest.spyOn(blockWatcherMock, "getNextBlocksToProcess").mockResolvedValue([
             {
               block: { number: 101, parentHash: "another-hash" },
-              blockDetails: null,
+              transactions: [],
+              changedBalances: [],
             } as BlockData,
           ]);
 
@@ -335,7 +342,7 @@ describe("BlockProcessor", () => {
 
       describe("and there are blocks in DB", () => {
         beforeEach(() => {
-          jest.spyOn(blockRepositoryMock, "getLastBlock").mockResolvedValue({
+          jest.spyOn(blockRepositoryMock, "getBlock").mockResolvedValue({
             number: 100,
             hash: "hash",
           } as Block);
@@ -346,7 +353,6 @@ describe("BlockProcessor", () => {
             jest.spyOn(blockWatcherMock, "getNextBlocksToProcess").mockResolvedValue([
               {
                 block: { number: 101, parentHash: "another-hash" },
-                blockDetails: {},
               } as BlockData,
             ]);
           });
@@ -378,7 +384,31 @@ describe("BlockProcessor", () => {
             jest.spyOn(blockWatcherMock, "getNextBlocksToProcess").mockResolvedValue([
               {
                 block: null,
-                blockDetails: null,
+              } as BlockData,
+            ]);
+          });
+
+          it("doesn't trigger blocks revert event and returns false", async () => {
+            const isNextBlockRangeProcessed = await blockProcessor.processNextBlocksRange();
+            expect(eventEmitterMock.emit).not.toBeCalled();
+            expect(isNextBlockRangeProcessed).toBeFalsy();
+          });
+        });
+
+        describe("and parent hash of the first block to process is different to hash of the last block in DB", () => {
+          beforeEach(() => {
+            const lastDbBlock = mock<Block>({
+              number: 100,
+              hash: "hash",
+            });
+            jest.spyOn(blockRepositoryMock, "getBlock").mockResolvedValue(lastDbBlock);
+            jest.spyOn(blockWatcherMock, "getNextBlocksToProcess").mockResolvedValue([
+              {
+                block: {
+                  number: 101,
+                  hash: "hash2",
+                  parentHash: "another-hash",
+                },
               } as BlockData,
             ]);
           });
@@ -389,19 +419,6 @@ describe("BlockProcessor", () => {
               detectedIncorrectBlockNumber: 100,
             });
             expect(isNextBlockRangeProcessed).toBeFalsy();
-          });
-
-          describe("when blocks revert is disabled", () => {
-            it("does not trigger the revert event", async () => {
-              (configServiceMock.get as jest.Mock)
-                .mockReturnValueOnce(null)
-                .mockReturnValueOnce(null)
-                .mockReturnValueOnce(true);
-              blockProcessor = await getBlockProcessor();
-              const isNextBlockRangeProcessed = await blockProcessor.processNextBlocksRange();
-              expect(eventEmitterMock.emit).not.toBeCalled();
-              expect(isNextBlockRangeProcessed).toBeFalsy();
-            });
           });
         });
 
@@ -414,11 +431,9 @@ describe("BlockProcessor", () => {
                     number: 101,
                     parentHash: "hash",
                   },
-                  blockDetails: {},
                 } as BlockData,
                 {
                   block: null,
-                  blockDetails: null,
                 } as BlockData,
               ]);
 
@@ -438,7 +453,6 @@ describe("BlockProcessor", () => {
                     hash: "hash2",
                     parentHash: "hash",
                   },
-                  blockDetails: {},
                 } as BlockData,
                 {
                   block: {
@@ -446,7 +460,6 @@ describe("BlockProcessor", () => {
                     hash: "hash3",
                     parentHash: "wrong-parent-hash",
                   },
-                  blockDetails: {},
                 } as BlockData,
               ]);
 
@@ -468,11 +481,7 @@ describe("BlockProcessor", () => {
                     hash: "hash2",
                     parentHash: "hash",
                     transactions: ["0", "1"],
-                  },
-                  blockDetails: {
-                    number: 10,
-                    l1BatchNumber: 3,
-                    timestamp: 1703845168,
+                    timestamp: Math.floor(new Date().getTime() / 1000),
                   },
                   transactions: [
                     {
@@ -485,7 +494,7 @@ describe("BlockProcessor", () => {
                   blockLogs: [],
                   blockTransfers: [],
                   changedBalances: [],
-                } as BlockData,
+                } as unknown as BlockData,
               ];
               jest.spyOn(blockWatcherMock, "getNextBlocksToProcess").mockResolvedValue(blocksToProcess);
             });
@@ -508,54 +517,31 @@ describe("BlockProcessor", () => {
             });
 
             it("adds blocks to the DB", async () => {
+              const block = blocksToProcess[0].block;
               await blockProcessor.processNextBlocksRange();
               expect(blockRepositoryMock.add).toHaveBeenCalledTimes(1);
-              expect(blockRepositoryMock.add).toHaveBeenCalledWith(
-                blocksToProcess[0].block,
-                blocksToProcess[0].blockDetails
-              );
+              expect(blockRepositoryMock.add).toHaveBeenCalledWith({
+                hash: block.hash,
+                l1TxCount: 0,
+                l2TxCount: 2,
+                number: block.number,
+                parentHash: block.parentHash,
+                timestamp: new Date(block.timestamp * 1000),
+                transactions: block.transactions,
+              });
             });
 
             it("adds blocks transactions data", async () => {
               await blockProcessor.processNextBlocksRange();
               expect(transactionProcessorMock.add).toHaveBeenCalledTimes(2);
               expect(transactionProcessorMock.add).toHaveBeenCalledWith(
-                blocksToProcess[0].block.number,
+                blocksToProcess[0].block,
                 blocksToProcess[0].transactions[0]
               );
               expect(transactionProcessorMock.add).toHaveBeenCalledWith(
-                blocksToProcess[0].block.number,
+                blocksToProcess[0].block,
                 blocksToProcess[0].transactions[1]
               );
-            });
-
-            describe("when block data contains block logs", () => {
-              beforeEach(() => {
-                blocksToProcess[0].blockLogs = [{ logIndex: 0 } as types.Log, { logIndex: 1 } as types.Log];
-              });
-
-              it("saves block logs to the DB", async () => {
-                await blockProcessor.processNextBlocksRange();
-                expect(logRepositoryMock.addMany).toHaveBeenCalledTimes(1);
-                expect(logRepositoryMock.addMany).toHaveBeenCalledWith(
-                  blocksToProcess[0].blockLogs.map((log) => ({
-                    ...log,
-                    timestamp: unixTimeToDateString(blocksToProcess[0].blockDetails.timestamp),
-                  }))
-                );
-              });
-            });
-
-            describe("when block data contains block transfers", () => {
-              beforeEach(() => {
-                blocksToProcess[0].blockTransfers = [{ logIndex: 2 } as Transfer, { logIndex: 3 } as Transfer];
-              });
-
-              it("saves block transfers to the DB", async () => {
-                await blockProcessor.processNextBlocksRange();
-                expect(transferRepositoryMock.addMany).toHaveBeenCalledTimes(1);
-                expect(transferRepositoryMock.addMany).toHaveBeenCalledWith(blocksToProcess[0].blockTransfers);
-              });
             });
 
             describe("when block data contains changed balances", () => {

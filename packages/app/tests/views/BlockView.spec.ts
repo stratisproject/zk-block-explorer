@@ -6,6 +6,8 @@ import { mount } from "@vue/test-utils";
 
 import enUS from "@/locales/en.json";
 
+import type { SpyInstance } from "vitest";
+
 import $testId from "@/plugins/testId";
 import routes from "@/router/routes";
 import BlockView from "@/views/BlockView.vue";
@@ -16,7 +18,9 @@ const router = {
   currentRoute: {
     value: {},
   },
+  beforeEach: vi.fn(),
 };
+const routeQueryMock = vi.fn(() => ({}));
 
 vi.mock("@/composables/useSearch", () => {
   return {
@@ -28,12 +32,18 @@ vi.mock("@/composables/useSearch", () => {
 
 vi.mock("vue-router", () => ({
   useRouter: () => router,
-  useRoute: () => vi.fn(),
+  useRoute: () => ({
+    query: routeQueryMock(),
+  }),
+  createWebHistory: () => vi.fn(),
+  createRouter: () => ({ beforeEach: vi.fn() }),
 }));
 
 vi.mock("ohmyfetch", () => {
+  const fetchSpy = vi.fn();
+  (fetchSpy as unknown as { create: SpyInstance }).create = vi.fn(() => fetchSpy);
   return {
-    $fetch: vi.fn(),
+    $fetch: fetchSpy,
     FetchError: function error() {
       return;
     },

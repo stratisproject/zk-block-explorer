@@ -7,6 +7,8 @@
     v-if="contract?.address && !pending"
     :title="contractName ?? t('contract.title')"
     :value="contractName ? undefined : contract?.address"
+    :is-verified="contract?.verificationInfo != null"
+    :is-evm-like="contract?.isEvmLike"
   />
   <Spinner v-else size="md" />
   <div class="tables-container">
@@ -24,10 +26,18 @@
                 </div>
               </template>
               <template #title>
-                {{ t("contract.balances.notFound.title") }}
+                {{
+                  isPrividium ? t("contract.balances.prividiumNotFound.title") : t("contract.balances.notFound.title")
+                }}
               </template>
               <template #description>
-                <div class="balances-empty-description">{{ t("contract.balances.notFound.subtitle") }}</div>
+                <div class="balances-empty-description">
+                  {{
+                    isPrividium
+                      ? t("contract.balances.prividiumNotFound.subtitle")
+                      : t("contract.balances.notFound.subtitle")
+                  }}
+                </div>
               </template>
             </EmptyState>
           </template>
@@ -69,7 +79,7 @@
         <ContractInfoTab :contract="contract" />
       </template>
       <template #tab-4-content>
-        <ContractEvents :contract="contract" />
+        <ContractEvents v-if="showEventsTab" :contract="contract" />
       </template>
     </Tabs>
   </div>
@@ -77,6 +87,8 @@
 <script lang="ts" setup>
 import { computed, type PropType } from "vue";
 import { useI18n } from "vue-i18n";
+
+import { CheckCircleIcon } from "@heroicons/vue/solid";
 
 import SearchForm from "@/components/SearchForm.vue";
 import BalanceTable from "@/components/balances/Table.vue";
@@ -92,12 +104,21 @@ import ContractEvents from "@/components/event/ContractEvents.vue";
 import TransactionsTable from "@/components/transactions/Table.vue";
 import TransfersTable from "@/components/transfers/Table.vue";
 
+import useContext from "@/composables/useContext";
+import useRuntimeConfig from "@/composables/useRuntimeConfig";
+
 import type { BreadcrumbItem } from "@/components/common/Breadcrumbs.vue";
 import type { Contract } from "@/composables/useAddress";
 
 import { shortValue } from "@/utils/formatters";
 
 const { t } = useI18n();
+const runtimeConfig = useRuntimeConfig();
+const context = useContext();
+
+const isPrividium = runtimeConfig.appEnvironment === "prividium";
+const isAdmin = computed(() => context.user.value.loggedIn && context.user.value.roles.includes("admin"));
+const showEventsTab = computed(() => !isPrividium || isAdmin.value);
 
 const props = defineProps({
   contract: {
@@ -118,9 +139,14 @@ const props = defineProps({
 const tabs = computed(() => [
   { title: t("tabs.transactions"), hash: "#transactions" },
   { title: t("tabs.transfers"), hash: "#transfers" },
-  { title: t("tabs.contract"), hash: "#contract" },
-  { title: t("tabs.events"), hash: "#events" },
+  {
+    title: t("tabs.contract"),
+    hash: "#contract",
+    icon: props.contract?.verificationInfo ? CheckCircleIcon : null,
+  },
+  { title: t("tabs.events"), hash: showEventsTab.value ? "#events" : null },
 ]);
+
 const breadcrumbItems = computed((): BreadcrumbItem[] | [] => {
   if (props.contract?.address) {
     return [
@@ -133,8 +159,10 @@ const breadcrumbItems = computed((): BreadcrumbItem[] | [] => {
   return [];
 });
 
-const contractName = computed(() => props.contract?.verificationInfo?.request.contractName.replace(/.*\.sol:/, ""));
-const contractABI = computed(() => props.contract?.verificationInfo?.artifacts.abi);
+const contractName = computed(() =>
+  props.contract?.verificationInfo?.compilation.fullyQualifiedName.replace(/.*\.sol:/, "")
+);
+const contractABI = computed(() => props.contract?.verificationInfo?.abi);
 
 const transactionsSearchParams = computed(() => ({
   address: props.contract?.address,

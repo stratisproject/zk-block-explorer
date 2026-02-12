@@ -1,24 +1,11 @@
 import { Entity, Column, PrimaryColumn, Index } from "typeorm";
 import { BaseEntity } from "../common/entities/base.entity";
 import { normalizeAddressTransformer } from "../common/transformers/normalizeAddress.transformer";
-
 export enum TokenType {
-  ETH = "STRAX",
+  BaseToken = "BASETOKEN",
   ERC20 = "ERC20",
   ERC721 = "ERC721",
 }
-
-export const ETH_TOKEN: Token = {
-  l2Address: "0x000000000000000000000000000000000000800A",
-  l1Address: "0x0000000000000000000000000000000000000000",
-  symbol: "STRAX",
-  name: "STRAX",
-  decimals: 18,
-  // Fallback data in case STRAX token is not in the DB
-  iconURL: "https://assets.coingecko.com/coins/images/531/thumb/stratis.png?1696501751",
-  liquidity: 220000000000,
-  usdPrice: 1800,
-} as Token;
 
 @Entity({ name: "tokens" })
 @Index(["liquidity", "blockNumber", "logIndex"])

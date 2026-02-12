@@ -4,9 +4,6 @@ import { computed, ref } from "vue";
 
 import { vi } from "vitest";
 
-import * as composablesFactory from "@matterlabs/composables";
-
-import * as useBatches from "@/composables/useBatches";
 import * as useBlocks from "@/composables/useBlocks";
 import * as useContext from "@/composables/useContext";
 import * as useContractEvents from "@/composables/useContractEvents";
@@ -16,9 +13,10 @@ import * as useTokenLibraryMockFactory from "@/composables/useTokenLibrary";
 import * as useTransaction from "@/composables/useTransaction";
 import * as useTransactions from "@/composables/useTransactions";
 import * as useTransfers from "@/composables/useTransfers";
+import * as useWallet from "@/composables/useWallet";
 
 import type { NetworkConfig } from "@/configs";
-import type { Provider } from "zksync-web3";
+import type { JsonRpcProvider } from "ethers";
 
 import { checksumAddress } from "@/utils/formatters";
 
@@ -46,6 +44,7 @@ export const TESTNET_NETWORK: NetworkConfig = {
   maintenance: false,
   published: true,
   hostnames: [],
+  baseTokenAddress: checksumAddress("0x000000000000000000000000000000000000800A"),
 };
 export const TESTNET_BETA_NETWORK: NetworkConfig = {
   name: "testnet-beta",
@@ -58,7 +57,8 @@ export const TESTNET_BETA_NETWORK: NetworkConfig = {
   l1ExplorerUrl: "http://testnet-beta-block-explorer",
   maintenance: false,
   published: true,
-  hostnames: ["https://testnet-beta.staging-scan-v2.zksync.dev/"],
+  baseTokenAddress: checksumAddress("0x000000000000000000000000000000000000800A"),
+  hostnames: ["https://testnet.explorer.zksync.dev"],
 };
 
 export const useContractEventsMock = (params: any = {}) => {
@@ -74,8 +74,8 @@ export const useContractEventsMock = (params: any = {}) => {
   return mockContractEvent;
 };
 export const useWalletMock = (params: any = {}) => {
-  const mockWallet = vi.spyOn(composablesFactory, "useWallet").mockReturnValue({
-    ...composablesFactory.useWallet({
+  const mockWallet = vi.spyOn(useWallet, "default").mockReturnValue({
+    ...useWallet.default({
       currentNetwork: computed(() => ({
         chainName: TESTNET_NETWORK.name,
         explorerUrl: TESTNET_NETWORK.l1ExplorerUrl!,
@@ -83,9 +83,9 @@ export const useWalletMock = (params: any = {}) => {
         l2ChainId: TESTNET_NETWORK.l2ChainId,
         rpcUrl: TESTNET_NETWORK.rpcUrl,
       })),
-      getL2Provider: () => undefined as unknown as Provider,
+      getL2Provider: () => undefined as unknown as JsonRpcProvider,
     }),
-    getL2Signer: vi.fn(async () => undefined),
+    getL2Signer: vi.fn(async () => ({ getAddress: async () => "0x000000000000000000000000000000000000800A" })),
     ...params,
   });
   return mockWallet;
@@ -129,22 +129,9 @@ export const useBlocksMock = (params: any = {}) => {
   });
   return mockBlocks;
 };
-export const useBatchesMock = (params: any = {}) => {
-  const mockBatches = vi.spyOn(useBatches, "default").mockReturnValue({
-    data: ref([]),
-    total: ref(0),
-    load: () => vi.fn(),
-    pending: ref(false),
-    failed: ref(false),
-    page: ref(1),
-    pageSize: ref(10),
-    ...params,
-  });
-  return mockBatches;
-};
 
 export const useTransfersMock = (params: any = {}) => {
-  const mockBatches = vi.spyOn(useTransfers, "default").mockReturnValue({
+  const mockTransfers = vi.spyOn(useTransfers, "default").mockReturnValue({
     data: ref([]),
     load: () => vi.fn(),
     pending: ref(false),
@@ -152,7 +139,7 @@ export const useTransfersMock = (params: any = {}) => {
     pageSize: computed(() => 10),
     ...params,
   });
-  return mockBatches;
+  return mockTransfers;
 };
 
 export const useTransactionsMock = (params: any = {}) => {
@@ -185,10 +172,17 @@ export const useContextMock = (params: any = {}) => {
   const mockContextConfig = vi.spyOn(useContext, "default").mockReturnValue({
     getL2Provider: () => vi.fn(() => null),
     currentNetwork: computed(() => TESTNET_NETWORK),
+    user: computed(() => ({
+      address: "0x000000000000000000000000000000000000800A",
+      wallets: ["0x000000000000000000000000000000000000800A"],
+      roles: [],
+      loggedIn: true,
+    })),
     identifyNetwork: () => undefined,
     isReady: computed(() => true),
     networks: computed(() => [TESTNET_NETWORK]),
     ...params,
+    isGatewaySettlementChain: () => false,
   });
 
   return mockContextConfig;

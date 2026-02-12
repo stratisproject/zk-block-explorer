@@ -1,9 +1,11 @@
 import { MoreThanOrEqual, LessThanOrEqual, Between, SelectQueryBuilder } from "typeorm";
 import { IPaginationMeta, createPaginationObject, Pagination } from "nestjs-typeorm-paginate";
 
-import { NumerableEntity } from "../common/entities/numerable.entity";
+import { NumerableEntity } from "./entities/numerable.entity";
 import { hexTransformer } from "./transformers/hex.transformer";
 import { IPaginationOptions } from "./types";
+import { Request } from "express";
+import { getAddress, zeroPadValue } from "ethers";
 
 const MIN_OFFSET_TO_USE_NUMBER_FILTER = 1000;
 
@@ -110,7 +112,7 @@ export const getMethodId = (data: string) => (data.length > 10 ? data.substring(
 
 export const dateToTimestamp = (date: Date) => Math.floor(date.getTime() / 1000);
 
-export const numberToHex = (num: number) => (num != null ? `0x${num.toString(16)}` : "0x");
+export const numberToHex = (num: number | bigint) => (num != null ? `0x${num.toString(16)}` : "0x");
 
 export const parseIntToHex = (numStr: string) => {
   if (numStr != null) {
@@ -121,3 +123,29 @@ export const parseIntToHex = (numStr: string) => {
   }
   return "0x";
 };
+
+/**
+ * Parses the request pathname from the request object
+ */
+export const parseReqPathname = (req: Request) => {
+  return new URL(req.originalUrl, "http://localhost").pathname;
+};
+
+/**
+ * Compares two addresses and returns true if they are the same.
+ * If one of the addresses is invalid, returns false.
+ */
+export const isAddressEqual = (address1: string, address2: string): boolean => {
+  try {
+    return getAddress(address1) === getAddress(address2);
+  } catch {
+    return false;
+  }
+};
+
+/**
+ * Pads an address to 32 bytes by adding zeros to the left.
+ * @param address - The address to pad.
+ * @returns The padded address.
+ */
+export const padAddressToTransactionLogTopic = (address: string) => zeroPadValue(address, 32);

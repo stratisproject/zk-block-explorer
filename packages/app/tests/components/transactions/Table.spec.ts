@@ -18,8 +18,16 @@ import type { TransactionListItem } from "@/composables/useTransactions";
 
 import $testId from "@/plugins/testId";
 
+const router = {
+  push: vi.fn(),
+};
+
+const routeQueryMock = vi.fn(() => ({}));
 vi.mock("vue-router", () => ({
-  useRoute: vi.fn(() => ({ query: {} })),
+  useRoute: () => ({
+    query: routeQueryMock(),
+  }),
+  useRouter: () => router,
 }));
 vi.mock("@/composables/useTokenLibrary", () => {
   return {
@@ -48,21 +56,17 @@ const transaction: TransactionListItem = {
   fee: "0x3b9329f2a880",
   nonce: 69,
   blockNumber: 6539779,
-  l1BatchNumber: 74373,
   blockHash: "0x5ad6b0475a6bdff6007e62adec0ceed0796fb427fe8f4de310432a52e118800b",
   transactionIndex: 5,
   receivedAt: "2023-06-20T12:10:44.187Z",
   status: "included",
-  commitTxHash: null,
-  executeTxHash: null,
-  proveTxHash: null,
-  isL1BatchSealed: false,
   gasPrice: "4000",
   gasLimit: "5000",
   gasUsed: "3000",
   gasPerPubdata: "800",
   maxFeePerGas: "7000",
   maxPriorityFeePerGas: "8000",
+  contractAddress: null,
   error: null,
   revertReason: null,
 };
@@ -147,8 +151,8 @@ describe("Transfers:", () => {
         renderResult!.unmount();
       });
 
-      it("renders sent status column", () => {
-        expect(renderResult!.container.querySelector(".badge-content")!.textContent).toEqual("Sent on");
+      it("renders processed status column", () => {
+        expect(renderResult!.container.querySelector(".badge-content")!.textContent).toEqual("Processed on");
       });
     });
 
@@ -172,8 +176,8 @@ describe("Transfers:", () => {
         renderResult!.unmount();
       });
 
-      it("renders validated status column", () => {
-        expect(renderResult!.container.querySelector(".badge-content")!.textContent).toEqual("Validated on");
+      it("renders processed status column", () => {
+        expect(renderResult!.container.querySelector(".badge-content")!.textContent).toEqual("Processed on");
       });
     });
 
@@ -197,8 +201,8 @@ describe("Transfers:", () => {
         renderResult!.unmount();
       });
 
-      it("renders executed status column", () => {
-        expect(renderResult!.container.querySelector(".badge-content")!.textContent).toEqual("Executed on");
+      it("renders processed status column", () => {
+        expect(renderResult!.container.querySelector(".badge-content")!.textContent).toEqual("Processed on");
       });
     });
 
@@ -278,12 +282,12 @@ describe("Transfers:", () => {
       });
 
       it("renders pagination", async () => {
-        expect(renderResult!.container.querySelector(".pagination")).not.toBeNull();
+        expect(renderResult!.container.querySelector(".pagination-container")).not.toBeNull();
       });
 
       it("does not render pagination if pagination prop is false", async () => {
         await renderResult?.rerender({ pagination: false });
-        expect(renderResult!.container.querySelector(".pagination")).toBeNull();
+        expect(renderResult!.container.querySelector(".pagination-container")).toBeNull();
       });
     });
 

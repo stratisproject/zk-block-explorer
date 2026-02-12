@@ -22,15 +22,23 @@
           </InfoTooltip>
         </TableBodyColumn>
         <TableBodyColumn class="transaction-table-value transaction-status-value">
-          <TransactionStatus
-            :status="transaction!.status"
-            :commit-tx-hash="transaction!.ethCommitTxHash"
-            :prove-tx-hash="transaction!.ethProveTxHash"
-            :execute-tx-hash="transaction!.ethExecuteTxHash"
-          />
+          <TransactionStatus :status="transaction!.status" />
         </TableBodyColumn>
       </tr>
-      <tr v-if="transaction?.error || transaction?.revertReason" class="transaction-table-row">
+      <tr v-if="transaction?.error" class="transaction-table-row">
+        <TableBodyColumn class="transaction-table-label">
+          <span class="transaction-info-field-label transaction-error-label">
+            {{ t("transactions.table.error") }}
+          </span>
+          <InfoTooltip class="transaction-info-field-tooltip">
+            {{ t("transactions.table.errorTooltip") }}
+          </InfoTooltip>
+        </TableBodyColumn>
+        <TableBodyColumn class="transaction-table-value transaction-error-value">
+          {{ transaction.error }}
+        </TableBodyColumn>
+      </tr>
+      <tr v-if="transaction?.revertReason" class="transaction-table-row">
         <TableBodyColumn class="transaction-table-label">
           <span class="transaction-info-field-label transaction-reason-label">
             {{ t("transactions.table.reason") }}
@@ -39,8 +47,8 @@
             {{ t("transactions.table.reasonTooltip") }}
           </InfoTooltip>
         </TableBodyColumn>
-        <TableBodyColumn class="transaction-table-value transaction-reason-value">
-          {{ transaction.error || transaction.revertReason || "" }}
+        <TableBodyColumn class="transaction-table-value transaction-error-value">
+          {{ transaction.revertReason }}
         </TableBodyColumn>
       </tr>
       <tr class="transaction-table-row">
@@ -69,29 +77,6 @@
       </tr>
       <tr class="transaction-table-row">
         <TableBodyColumn class="transaction-table-label">
-          <span class="transaction-info-field-label">{{ t("transactions.table.batch") }}</span>
-          <InfoTooltip class="transaction-info-field-tooltip">
-            {{ t("transactions.table.batchTooltip") }}
-          </InfoTooltip>
-        </TableBodyColumn>
-        <TableBodyColumn class="transaction-table-value">
-          <span v-if="transaction?.l1BatchNumber">
-            <router-link
-              v-if="transaction?.isL1BatchSealed"
-              :to="{ name: 'batch', params: { id: transaction.l1BatchNumber } }"
-            >
-              #{{ transaction.l1BatchNumber }}
-            </router-link>
-            <Tooltip v-else>
-              <span>#{{ transaction.l1BatchNumber }}</span>
-              <template #content>{{ t("batches.notYetSealed") }}</template>
-            </Tooltip>
-          </span>
-          <span v-else>{{ t("transactions.table.unknown") }}</span>
-        </TableBodyColumn>
-      </tr>
-      <tr class="transaction-table-row">
-        <TableBodyColumn class="transaction-table-label">
           <span class="transaction-info-field-label">{{ t("transactions.table.from") }}</span>
           <InfoTooltip class="transaction-info-field-tooltip">
             {{ t("transactions.table.fromTooltip") }}
@@ -113,8 +98,21 @@
         </TableBodyColumn>
         <TableBodyColumn class="transaction-table-value">
           <div class="value-with-copy-button">
-            <AddressLink :address="transaction?.to" />
-            <CopyButton :value="transaction?.to" />
+            <div class="address-badge-container">
+              <div class="flex items-center justify-center gap-2">
+                <AddressLink v-if="!!displayedTxReceiver" :address="displayedTxReceiver" />
+                <p v-if="isContractDeploymentTx">{{ t("contract.created") }}</p>
+              </div>
+              <Badge
+                v-if="transaction?.isEvmLike && displayedTxReceiver"
+                color="primary"
+                class="verified-badge"
+                :tooltip="t('contract.evmTooltip')"
+              >
+                {{ t("contract.evm") }}
+              </Badge>
+            </div>
+            <CopyButton v-if="displayedTxReceiver" :value="displayedTxReceiver" />
           </div>
         </TableBodyColumn>
       </tr>
@@ -163,7 +161,7 @@
           </InfoTooltip>
         </TableBodyColumn>
         <TableBodyColumn class="transaction-table-value">
-          <FeeData :fee-data="transaction?.feeData" :show-details="transaction?.status !== 'indexing'" />
+          <FeeData :fee-data="transaction?.feeData" :show-details="showFeeDetails" />
         </TableBodyColumn>
       </tr>
       <tr class="transaction-table-row">
@@ -197,9 +195,9 @@
       </tr>
       <tr class="transaction-table-row">
         <table-body-column class="transaction-table-label">
-          <span class="transaction-info-field-label">{{ t("transactions.table.created") }}</span>
+          <span class="transaction-info-field-label">{{ t("transactions.table.timestamp") }}</span>
           <InfoTooltip class="transaction-info-field-tooltip">
-            {{ t("transactions.table.createdTooltip") }}
+            {{ t("transactions.table.timestampTooltip") }}
           </InfoTooltip>
         </table-body-column>
         <table-body-column class="transaction-table-value">
@@ -226,9 +224,9 @@ import { useI18n } from "vue-i18n";
 
 import AddressLink from "@/components/AddressLink.vue";
 import FeeData from "@/components/FeeData.vue";
+import Badge from "@/components/common/Badge.vue";
 import CopyButton from "@/components/common/CopyButton.vue";
 import InfoTooltip from "@/components/common/InfoTooltip.vue";
-import Tooltip from "@/components/common/Tooltip.vue";
 import ContentLoader from "@/components/common/loaders/ContentLoader.vue";
 import Table from "@/components/common/table/Table.vue";
 import TableBodyColumn from "@/components/common/table/TableBodyColumn.vue";
@@ -240,6 +238,8 @@ import TransactionData from "@/components/transactions/infoTable/TransactionData
 import TransferTableCell from "@/components/transactions/infoTable/TransferTableCell.vue";
 
 import type { TransactionItem } from "@/composables/useTransaction";
+
+import { isContractDeployerAddress } from "@/utils/helpers";
 
 const { t } = useI18n();
 
@@ -255,6 +255,23 @@ const props = defineProps({
   decodingDataError: {
     type: String,
   },
+});
+
+const showFeeDetails = computed(() => {
+  if (props.transaction) {
+    const tx = props.transaction;
+    // Transaction is being indexed or doesn't have fee details to show
+    return tx.status !== "indexing" && (tx.feeData.refunds.length > 0 || tx.feeData.isPaidByPaymaster);
+  }
+  return false;
+});
+
+const isContractDeploymentTx = computed(() => {
+  return isContractDeployerAddress(props.transaction?.to) && !!props.transaction?.contractAddress;
+});
+
+const displayedTxReceiver = computed(() => {
+  return isContractDeploymentTx.value ? props.transaction?.contractAddress : props.transaction?.to;
 });
 
 const tokenTransfers = computed(() => {
@@ -320,11 +337,17 @@ const gasUsedPercent = computed(() => {
     display: flex;
     justify-content: space-between;
   }
+  .address-badge-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+  }
   .transaction-status-value {
     @apply py-2;
   }
-  .transaction-reason-value {
-    @apply whitespace-normal text-error-600;
+  .transaction-error-value {
+    @apply whitespace-normal break-all text-error-600;
   }
 }
 </style>

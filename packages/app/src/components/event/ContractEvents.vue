@@ -115,7 +115,7 @@ watch(
         pageSize: pageSize.value,
         toDate: toDate,
       },
-      props.contract.verificationInfo?.artifacts.abi
+      props.contract.verificationInfo?.abi
     );
   },
   { immediate: true }
@@ -159,7 +159,7 @@ watch(
     @apply block;
   }
   .pagination {
-    @apply flex justify-center p-3;
+    @apply p-3;
   }
   .only-mobile {
     @apply flex md:hidden;

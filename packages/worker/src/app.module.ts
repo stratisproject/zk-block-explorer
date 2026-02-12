@@ -9,7 +9,7 @@ import { HealthModule } from "./health/health.module";
 import { AppService } from "./app.service";
 import { BlockchainService } from "./blockchain";
 import { BlocksRevertService } from "./blocksRevert";
-import { BatchService } from "./batch";
+import { BlockStatusService } from "./blockStatus";
 import { BlockProcessor, BlockWatcher, BlockService } from "./block";
 import { TransactionProcessor } from "./transaction";
 import { BalanceService, BalancesCleanerService } from "./balance";
@@ -20,7 +20,6 @@ import { PortalsFiTokenOffChainDataProvider } from "./token/tokenOffChainData/pr
 import { TokenOffChainDataSaverService } from "./token/tokenOffChainData/tokenOffChainDataSaver.service";
 import { CounterModule } from "./counter/counter.module";
 import {
-  BatchRepository,
   BlockRepository,
   TransactionRepository,
   AddressTransactionRepository,
@@ -33,7 +32,6 @@ import {
   BalanceRepository,
 } from "./repositories";
 import {
-  Batch,
   Block,
   Transaction,
   AddressTransaction,
@@ -52,6 +50,7 @@ import { MetricsModule } from "./metrics";
 import { DbMetricsService } from "./dbMetrics.service";
 import { UnitOfWorkModule } from "./unitOfWork";
 import { DataFetcherService } from "./dataFetcher/dataFetcher.service";
+import { SystemContractService } from "./contract/systemContract.service";
 
 @Module({
   imports: [
@@ -69,7 +68,6 @@ import { DataFetcherService } from "./dataFetcher/dataFetcher.service";
       },
     }),
     TypeOrmModule.forFeature([
-      Batch,
       Block,
       Transaction,
       AddressTransaction,
@@ -110,7 +108,6 @@ import { DataFetcherService } from "./dataFetcher/dataFetcher.service";
       inject: [ConfigService, HttpService],
     },
     TokenOffChainDataSaverService,
-    BatchRepository,
     BlockRepository,
     TransactionRepository,
     AddressTransactionRepository,
@@ -122,7 +119,7 @@ import { DataFetcherService } from "./dataFetcher/dataFetcher.service";
     BalanceRepository,
     LogRepository,
     BlocksRevertService,
-    BatchService,
+    BlockStatusService,
     BlockProcessor,
     TransactionProcessor,
     BlockWatcher,
@@ -130,6 +127,7 @@ import { DataFetcherService } from "./dataFetcher/dataFetcher.service";
     Logger,
     RetryDelayProvider,
     DbMetricsService,
+    SystemContractService,
   ],
 })
 export class AppModule {}

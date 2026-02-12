@@ -1,29 +1,29 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { INestApplication } from "@nestjs/common";
-import * as request from "supertest";
+import request from "supertest";
 import { Repository } from "typeorm";
 import { getRepositoryToken } from "@nestjs/typeorm";
 import { AppModule } from "../src/app.module";
 import { configureApp } from "../src/configureApp";
-import { Token, TokenType, ETH_TOKEN } from "../src/token/token.entity";
+import { Token, TokenType } from "../src/token/token.entity";
 import { BlockDetails } from "../src/block/blockDetails.entity";
 import { Transaction } from "../src/transaction/entities/transaction.entity";
 import { Transfer, TransferType } from "../src/transfer/transfer.entity";
-import { BatchDetails } from "../src/batch/batchDetails.entity";
+import { baseToken } from "../src/config";
 
 describe("TokenController (e2e)", () => {
+  let ETH_TOKEN;
   let app: INestApplication;
   let tokenRepository: Repository<Token>;
   let blockRepository: Repository<BlockDetails>;
   let transactionRepository: Repository<Transaction>;
   let transferRepository: Repository<Transfer>;
-  let batchRepository: Repository<BatchDetails>;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
+      imports: [AppModule.build()],
     }).compile();
-
+    ETH_TOKEN = baseToken;
     app = moduleFixture.createNestApplication({ logger: false });
 
     configureApp(app);
@@ -34,22 +34,6 @@ describe("TokenController (e2e)", () => {
     blockRepository = app.get<Repository<BlockDetails>>(getRepositoryToken(BlockDetails));
     transactionRepository = app.get<Repository<Transaction>>(getRepositoryToken(Transaction));
     transferRepository = app.get<Repository<Transfer>>(getRepositoryToken(Transfer));
-    batchRepository = app.get<Repository<BatchDetails>>(getRepositoryToken(BatchDetails));
-
-    await batchRepository.insert({
-      number: 1,
-      timestamp: new Date("2022-11-10T14:44:08.000Z"),
-      l1TxCount: 10,
-      l2TxCount: 20,
-      l1GasPrice: "10000000",
-      l2FairGasPrice: "20000000",
-      commitTxHash: "0xeb5ead20476b91008c3b6e44005017e697de78e4fd868d99d2c58566655c5ace",
-      executeTxHash: "0xeb5ead20476b91008c3b6e44005017e697de78e4fd868d99d2c58566655c5ace",
-      proveTxHash: "0xeb5ead20476b91008c3b6e44005017e697de78e4fd868d99d2c58566655c5ace",
-      committedAt: new Date("2022-11-10T14:44:08.000Z"),
-      executedAt: new Date("2022-11-10T14:44:08.000Z"),
-      provenAt: new Date("2022-11-10T14:44:08.000Z"),
-    });
 
     await blockRepository.insert({
       number: 1,
@@ -59,7 +43,6 @@ describe("TokenController (e2e)", () => {
       gasUsed: "0",
       baseFeePerGas: "100000000",
       extraData: "0x",
-      l1BatchNumber: 1,
       l1TxCount: 10,
       l2TxCount: 20,
       miner: "0x0000000000000000000000000000000000000000",
@@ -78,7 +61,6 @@ describe("TokenController (e2e)", () => {
       blockHash: "0x4f86d6647711915ac90e5ef69c29845946f0a55b3feaa0488aece4a359f79cb1",
       receivedAt: "2022-11-21T18:16:51.000Z",
       isL1Originated: true,
-      l1BatchNumber: 1,
       receiptStatus: 1,
       gasLimit: "1000000",
       gasPrice: "100",
@@ -232,7 +214,7 @@ describe("TokenController (e2e)", () => {
         tokenAddress: "0x000000000000000000000000000000000000800A",
         amount: "1000",
         type: TransferType.Refund,
-        tokenType: TokenType.ETH,
+        tokenType: TokenType.BaseToken,
         logIndex: transferIndex++,
         transactionIndex: 0,
         timestamp: "2022-11-21T18:16:51.000Z",
@@ -243,11 +225,10 @@ describe("TokenController (e2e)", () => {
   });
 
   afterAll(async () => {
-    await transferRepository.delete({});
-    await tokenRepository.delete({});
-    await transactionRepository.delete({});
-    await blockRepository.delete({});
-    await batchRepository.delete({});
+    await transferRepository.createQueryBuilder().delete().execute();
+    await tokenRepository.createQueryBuilder().delete().execute();
+    await transactionRepository.createQueryBuilder().delete().execute();
+    await blockRepository.createQueryBuilder().delete().execute();
 
     await app.close();
   });
@@ -383,29 +364,29 @@ describe("TokenController (e2e)", () => {
 
     it("returns HTTP 200 and populated paging metadata", () => {
       return request(app.getHttpServer())
-        .get("/tokens?page=2&limit=10")
+        .get("/tokens?page=2&limit=5")
         .expect(200)
         .expect((res) =>
           expect(res.body.meta).toStrictEqual({
             currentPage: 2,
-            itemCount: 10,
-            itemsPerPage: 10,
-            totalItems: 31,
-            totalPages: 4,
+            itemCount: 5,
+            itemsPerPage: 5,
+            totalItems: 15,
+            totalPages: 3,
           })
         );
     });
 
     it("returns HTTP 200 and populated paging links", () => {
       return request(app.getHttpServer())
-        .get("/tokens?page=2&limit=10")
+        .get("/tokens?page=2&limit=5")
         .expect(200)
         .expect((res) =>
           expect(res.body.links).toStrictEqual({
-            first: "tokens?limit=10",
-            last: "tokens?page=4&limit=10",
-            next: "tokens?page=3&limit=10",
-            previous: "tokens?page=1&limit=10",
+            first: "tokens?limit=5",
+            last: "tokens?page=3&limit=5",
+            next: "tokens?page=3&limit=5",
+            previous: "tokens?page=1&limit=5",
           })
         );
     });
@@ -664,7 +645,7 @@ describe("TokenController (e2e)", () => {
                   usdPrice: null,
                 },
                 tokenAddress: "0x000000000000000000000000000000000000800A",
-                tokenType: "ETH",
+                tokenType: "BASETOKEN",
                 transactionHash: "0x8a008b8dbbc18035e56370abb820e736b705d68d6ac12b203603db8d9ea87e10",
                 type: "refund",
               },
@@ -687,7 +668,7 @@ describe("TokenController (e2e)", () => {
                   usdPrice: null,
                 },
                 tokenAddress: "0x000000000000000000000000000000000000800A",
-                tokenType: "ETH",
+                tokenType: "BASETOKEN",
                 transactionHash: "0x8a008b8dbbc18035e56370abb820e736b705d68d6ac12b203603db8d9ea87e10",
                 type: "refund",
               },
@@ -710,7 +691,7 @@ describe("TokenController (e2e)", () => {
                   usdPrice: null,
                 },
                 tokenAddress: "0x000000000000000000000000000000000000800A",
-                tokenType: "ETH",
+                tokenType: "BASETOKEN",
                 transactionHash: "0x8a008b8dbbc18035e56370abb820e736b705d68d6ac12b203603db8d9ea87e10",
                 type: "refund",
               },

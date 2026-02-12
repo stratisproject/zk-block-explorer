@@ -4,8 +4,10 @@
       <div class="header-container">
         <div class="logo-container">
           <router-link :to="{ name: 'home' }">
-            <span class="sr-only">zkSync</span>
-            <zk-sync-era />
+            <span class="sr-only">ZKsync</span>
+            <img v-if="currentNetwork.logoUrl" :src="currentNetwork.logoUrl" />
+            <zk-sync-era v-else-if="currentNetwork.groupId === 'era'" />
+            <zk-sync-arrows-logo v-else />
           </router-link>
         </div>
         <div class="burger-button-container">
@@ -29,7 +31,8 @@
           </a> -->
         </PopoverGroup>
         <div class="header-right-side">
-          <NetworkSwitch />
+          <WalletButton v-if="isPrividium" />
+          <NetworkSwitch v-else />
           <LocaleSwitch
             :value="(locale as string)"
             @update:value="changeLanguage"
@@ -40,7 +43,7 @@
               }))
             "
           />
-          <div class="socials-container">
+          <div v-if="!isPrividium" class="socials-container">
             <a :href="social.url" target="_blank" rel="noopener" v-for="(social, index) in socials" :key="index">
               <component :is="social.component" />
             </a>
@@ -48,13 +51,14 @@
         </div>
       </div>
     </div>
-    <!-- <div
+    <div
       v-if="hasContent"
       class="hero-banner-container"
       :class="[`${currentNetwork.name}`, { 'home-banner': route.path === '/' }]"
     >
-      <hero-arrows class="hero-image" />
-    </div> -->
+      <img v-if="currentNetwork.heroBannerImageUrl" class="hero-image" :src="currentNetwork.heroBannerImageUrl" />
+      <hero-arrows v-else class="hero-image" />
+    </div>
     <transition
       enter-active-class="duration-200 ease-out"
       enter-from-class="scale-95 opacity-0"
@@ -68,7 +72,8 @@
           <div class="mobile-header-container">
             <div class="mobile-popover-navigation">
               <div class="popover-zksync-logo">
-                <zk-sync-era class="logo" />
+                <img v-if="currentNetwork.logoInverseUrl" :src="currentNetwork.logoInverseUrl" />
+                <zk-sync v-else class="logo" />
               </div>
               <div class="-mr-2">
                 <PopoverButton class="close-popover-button">
@@ -104,7 +109,8 @@
               </nav>
             </div>
             <div class="mobile-network-switch-container">
-              <NetworkSwitch />
+              <WalletButton v-if="isPrividium" />
+              <NetworkSwitch v-else />
               <LocaleSwitch
                 :value="(locale as string)"
                 @update:value="changeLanguage"
@@ -116,7 +122,7 @@
                 "
               />
             </div>
-            <div class="mobile-socials-container">
+            <div v-if="!isPrividium" class="mobile-socials-container">
               <a :href="social.url" target="_blank" rel="noopener" v-for="(social, index) in socials" :key="index">
                 <component :is="social.component" />
               </a>
@@ -138,6 +144,7 @@ import { MenuIcon, XIcon } from "@heroicons/vue/outline";
 
 import LinksMobilePopover from "./LinksMobilePopover.vue";
 import LinksPopover from "./LinksPopover.vue";
+import WalletButton from "../prividium/WalletButton.vue";
 
 import LocaleSwitch from "@/components/LocaleSwitch.vue";
 import NetworkSwitch from "@/components/NetworkSwitch.vue";
@@ -145,21 +152,28 @@ import DiscordIcon from "@/components/icons/DiscordIcon.vue";
 import HeroArrows from "@/components/icons/HeroArrows.vue";
 import TwitterIcon from "@/components/icons/TwitterIcon.vue";
 import ZkSync from "@/components/icons/ZkSync.vue";
+import ZkSyncArrowsLogo from "@/components/icons/ZkSyncArrowsLogo.vue";
 import ZkSyncEra from "@/components/icons/ZkSyncEra.vue";
 
 import useContext from "@/composables/useContext";
 import useLocalization from "@/composables/useLocalization";
+import useRuntimeConfig from "@/composables/useRuntimeConfig";
 
 import { isAddress, isBlockNumber, isTransactionHash } from "@/utils/validators";
 const { changeLanguage } = useLocalization();
 const { t, locale } = useI18n({ useScope: "global" });
 const route = useRoute();
-const { currentNetwork } = useContext();
+const { currentNetwork, user } = useContext();
+const runtimeConfig = useRuntimeConfig();
+
+const isPrividium = runtimeConfig.appEnvironment === "prividium";
+const isAdmin = computed(() => user.value.loggedIn && user.value.roles.includes("admin"));
+const showAdminLinks = computed(() => !isPrividium || isAdmin.value);
 
 const navigation = reactive([
   {
     label: computed(() => t("header.nav.documentation")),
-    url: "https://docs.zksync.io/build/tooling/block-explorer/getting-started.html",
+    url: runtimeConfig.links.docsUrl,
   },
 ]);
 
@@ -167,10 +181,6 @@ const blockExplorerLinks = reactive([
   {
     label: computed(() => t("blocksView.title")),
     to: { name: "blocks" },
-  },
-  {
-    label: computed(() => t("batches.title")),
-    to: { name: "batches" },
   },
   {
     label: computed(() => t("transactionsView.title")),
@@ -182,29 +192,33 @@ const blockExplorerLinks = reactive([
   },
 ]);
 
-const links = [
-  {
-    label: computed(() => t("header.nav.apiDocs")),
-    url: computed(() => `${currentNetwork.value.apiUrl}/docs`),
-  },
-  {
-    label: computed(() => t("header.nav.contractVerification")),
-    to: { name: "contract-verification" },
-  },
-];
+const toolsLinks = computed(() => {
+  const links = [];
 
-if (currentNetwork.value.bridgeUrl) {
-  links.push({
-    label: computed(() => t("header.nav.bridge")),
-    url: computed(() => currentNetwork.value.bridgeUrl!),
-  });
-}
+  if (showAdminLinks.value) {
+    links.push({
+      label: t("header.nav.apiDocs"),
+      url: `${currentNetwork.value.apiUrl}/docs`,
+    });
+    links.push({
+      label: t("header.nav.contractVerification"),
+      to: { name: "contract-verification" },
+    });
+  }
 
-const toolsLinks = reactive(links);
+  if (currentNetwork.value.bridgeUrl) {
+    links.push({
+      label: t("header.nav.bridge"),
+      url: currentNetwork.value.bridgeUrl!,
+    });
+  }
+
+  return links;
+});
 
 const socials = [
-  { url: "https://discordapp.com/invite/9tDyfZs", component: DiscordIcon },
-  { url: "https://twitter.com/stratisplatform", component: TwitterIcon },
+  { url: runtimeConfig.links.discordUrl, component: DiscordIcon },
+  { url: runtimeConfig.links.xUrl, component: TwitterIcon },
 ];
 
 const hasContent = computed(() => {
@@ -226,22 +240,33 @@ const hasContent = computed(() => {
 
 <style lang="scss">
 .header-popover-container {
-  @apply relative bg-white shadow;
+  @apply relative bg-primary-900;
+
   .header-wrap {
     @apply container z-50;
   }
+
   .header-container {
     @apply flex items-center justify-between py-4 md:space-x-10 lg:justify-start;
   }
+
   .logo-container {
     @apply flex justify-start;
+
+    img,
+    svg {
+      @apply h-10;
+    }
   }
+
   .burger-button-container {
     @apply -my-2 -mr-2 lg:hidden;
+
     .burger-button {
       @apply inline-flex items-center justify-center rounded-md border border-neutral-400 p-2 text-neutral-400 outline-none hover:bg-neutral-100 hover:text-neutral-500;
     }
   }
+
   .navigation-container {
     @apply hidden space-x-2 lg:flex xl:space-x-6;
 
@@ -250,6 +275,7 @@ const hasContent = computed(() => {
 
       .navigation-link {
         @apply flex items-center;
+
         &.active {
           @apply text-primary-800;
 
@@ -262,17 +288,20 @@ const hasContent = computed(() => {
           @apply -mr-1 ml-2 h-4 w-4;
         }
       }
+
       .dropdown-items {
         @apply absolute left-0 mt-1 grid w-60 origin-top-left grid-flow-row gap-1 rounded-md border-t-4 border-primary-800 bg-white p-4 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none;
 
         .dropdown-item {
-          @apply block rounded-md p-3 text-sm text-black no-underline;
+          @apply block rounded-md p-2 text-sm text-black no-underline;
+
           &.router-link-exact-active {
             @apply bg-primary-100;
           }
         }
       }
     }
+
     .navigation-link {
       @apply rounded-md py-2.5 text-base font-medium text-neutral-500 no-underline hover:text-primary-800 md:px-3.5;
     }
@@ -281,15 +310,14 @@ const hasContent = computed(() => {
       @apply bg-neutral-900;
     }
   }
-  .header-right-side {
-    @apply hidden items-center justify-end md:flex-1 lg:flex lg:w-0;
 
-    .network-switch {
-      @apply mr-4;
-    }
+  .header-right-side {
+    @apply hidden items-stretch justify-end gap-x-4 md:flex-1 lg:flex lg:w-0;
+
     .language-switch {
-      @apply mr-6;
+      @apply mr-2;
     }
+
     .socials-container {
       @apply flex items-center justify-end;
 
@@ -301,6 +329,7 @@ const hasContent = computed(() => {
       }
     }
   }
+
   .hero-banner-container {
     @apply absolute left-0 top-full flex h-64 w-full items-end justify-end overflow-hidden bg-primary-900;
 
@@ -308,10 +337,12 @@ const hasContent = computed(() => {
       @apply h-5/6 w-auto;
     }
   }
+
   .home-banner {
     @apply h-80;
   }
 }
+
 .header-mobile-popover {
   @apply absolute inset-x-0 top-0 z-50 origin-top-right transform p-2 transition lg:hidden;
 
@@ -324,7 +355,8 @@ const hasContent = computed(() => {
       .mobile-popover-navigation {
         @apply flex items-center justify-between;
 
-        .popover-zksync-logo svg {
+        .popover-zksync-logo svg,
+        .popover-zksync-logo img {
           @apply h-[42px] w-[42px] text-black;
         }
 
@@ -332,20 +364,24 @@ const hasContent = computed(() => {
           @apply inline-flex items-center justify-center rounded-md bg-white p-2 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-500;
         }
       }
+
       .mobile-navigation-container {
         @apply grid gap-y-4;
 
         .mobile-navigation-divider {
           @apply border-b border-neutral-300;
         }
+
         .mobile-navigation {
           @apply grid gap-y-4;
 
           .mobile-navigation-link {
             @apply flex items-center rounded-md p-2 no-underline hover:bg-neutral-50;
+
             &.router-link-exact-active {
               @apply bg-primary-100;
             }
+
             &.internal-link {
               .mobile-navigation-label {
                 @apply font-normal;
@@ -358,12 +394,15 @@ const hasContent = computed(() => {
           }
         }
       }
+
       .mobile-network-switch-container {
         @apply mt-4 border-t border-neutral-300 pt-5;
       }
+
       .language-switch {
         @apply mt-3;
       }
+
       .mobile-socials-container {
         @apply mt-5 flex items-center justify-center border-t border-neutral-300 pt-6;
 

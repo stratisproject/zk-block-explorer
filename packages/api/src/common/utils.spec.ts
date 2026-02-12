@@ -2,7 +2,7 @@ import { mock } from "jest-mock-extended";
 import { MoreThanOrEqual, LessThanOrEqual, Between, SelectQueryBuilder } from "typeorm";
 import * as paginator from "nestjs-typeorm-paginate";
 import { hexTransformer } from "./transformers/hex.transformer";
-import { BaseEntity } from "../common/entities/base.entity";
+import { BaseEntity } from "./entities/base.entity";
 import {
   buildDateFilter,
   paginate,
@@ -11,6 +11,9 @@ import {
   dateToTimestamp,
   numberToHex,
   parseIntToHex,
+  parseReqPathname,
+  isAddressEqual,
+  padAddressToTransactionLogTopic,
 } from "./utils";
 import { IPaginationOptions } from "./types";
 
@@ -384,6 +387,18 @@ describe("utils", () => {
     it("returns 0x if the specified number is undefined", () => {
       expect(numberToHex(undefined)).toBe("0x");
     });
+
+    it("returns hex str for the specified bigint", () => {
+      expect(numberToHex(BigInt("1000000000000000000000000"))).toBe("0xd3c21bcecceda1000000");
+    });
+
+    it("returns 0x if the specified bigint is null", () => {
+      expect(numberToHex(null)).toBe("0x");
+    });
+
+    it("returns 0x if the specified bigint is undefined", () => {
+      expect(numberToHex(undefined)).toBe("0x");
+    });
   });
 
   describe("parseIntToHex", () => {
@@ -401,6 +416,172 @@ describe("utils", () => {
 
     it("returns 0x if the specified number is not valid int", () => {
       expect(parseIntToHex("azxf")).toBe("0x");
+    });
+  });
+
+  describe("parseReqPathname", () => {
+    it("returns the pathname for a simple path", () => {
+      const req = {
+        originalUrl: "/test",
+      } as any;
+      expect(parseReqPathname(req)).toBe("/test");
+    });
+
+    it("returns the pathname when query parameters are present", () => {
+      const req = {
+        originalUrl: "/test?foo=bar&baz=qux",
+      } as any;
+      expect(parseReqPathname(req)).toBe("/test");
+    });
+
+    it("returns the pathname for a complex path", () => {
+      const req = {
+        originalUrl: "/api/v1/items/123",
+      } as any;
+      expect(parseReqPathname(req)).toBe("/api/v1/items/123");
+    });
+
+    it("returns '/' for the root path", () => {
+      const req = {
+        originalUrl: "/",
+      } as any;
+      expect(parseReqPathname(req)).toBe("/");
+    });
+
+    it("returns '/' for an empty originalUrl (which URL constructor treats as base path)", () => {
+      const req = {
+        originalUrl: "",
+      } as any;
+      // new URL("", "http://localhost") results in "http://localhost/"
+      expect(parseReqPathname(req)).toBe("/");
+    });
+
+    it("handles full URLs in originalUrl and extract pathname", () => {
+      const req = {
+        originalUrl: "http://example.com/path/to/resource?query=1",
+      } as any;
+      expect(parseReqPathname(req)).toBe("/path/to/resource");
+    });
+  });
+
+  describe("isAddressEqual", () => {
+    it("returns true when both addresses are identical and valid", () => {
+      const address = "0x1234567890123456789012345678901234567890";
+      expect(isAddressEqual(address, address)).toBe(true);
+    });
+
+    it("returns true when both addresses are the same but one is checksummed", () => {
+      const address1 = "0x1234567890123456789012345678901234567890";
+      const address2 = "0x1234567890123456789012345678901234567890"; // Same but potentially different checksum
+      expect(isAddressEqual(address1, address2)).toBe(true);
+    });
+
+    it("returns false when addresses are different", () => {
+      const address1 = "0x1234567890123456789012345678901234567890";
+      const address2 = "0x0987654321098765432109876543210987654321";
+      expect(isAddressEqual(address1, address2)).toBe(false);
+    });
+
+    it("returns false when first address is invalid", () => {
+      const invalidAddress = "0xinvalid";
+      const validAddress = "0x1234567890123456789012345678901234567890";
+      expect(isAddressEqual(invalidAddress, validAddress)).toBe(false);
+    });
+
+    it("returns false when second address is invalid", () => {
+      const validAddress = "0x1234567890123456789012345678901234567890";
+      const invalidAddress = "0xinvalid";
+      expect(isAddressEqual(validAddress, invalidAddress)).toBe(false);
+    });
+
+    it("returns false when both addresses are invalid", () => {
+      const invalidAddress1 = "0xinvalid";
+      const invalidAddress2 = "0xalsoinvalid";
+      expect(isAddressEqual(invalidAddress1, invalidAddress2)).toBe(false);
+    });
+
+    it("returns false when addresses are empty strings", () => {
+      expect(isAddressEqual("", "")).toBe(false);
+    });
+
+    it("returns false when one address is empty", () => {
+      const validAddress = "0x1234567890123456789012345678901234567890";
+      expect(isAddressEqual("", validAddress)).toBe(false);
+      expect(isAddressEqual(validAddress, "")).toBe(false);
+    });
+
+    it("returns false when addresses are too short", () => {
+      const shortAddress1 = "0x123";
+      const shortAddress2 = "0x456";
+      expect(isAddressEqual(shortAddress1, shortAddress2)).toBe(false);
+    });
+
+    it("returns false when addresses are too long", () => {
+      const longAddress1 = "0x12345678901234567890123456789012345678901234567890";
+      const longAddress2 = "0x98765432109876543210987654321098765432109876543210";
+      expect(isAddressEqual(longAddress1, longAddress2)).toBe(false);
+    });
+
+    it("returns false when addresses are not hex strings", () => {
+      const nonHexAddress1 = "not-an-address";
+      const nonHexAddress2 = "also-not-an-address";
+      expect(isAddressEqual(nonHexAddress1, nonHexAddress2)).toBe(false);
+    });
+
+    it("handles null and undefined gracefully", () => {
+      const validAddress = "0x1234567890123456789012345678901234567890";
+      expect(isAddressEqual(null as any, validAddress)).toBe(false);
+      expect(isAddressEqual(validAddress, null as any)).toBe(false);
+      expect(isAddressEqual(undefined as any, validAddress)).toBe(false);
+      expect(isAddressEqual(validAddress, undefined as any)).toBe(false);
+      expect(isAddressEqual(null as any, null as any)).toBe(false);
+      expect(isAddressEqual(undefined as any, undefined as any)).toBe(false);
+    });
+  });
+
+  describe("padAddressToTransactionLogTopic", () => {
+    it("pads a 20-byte address to 32 bytes", () => {
+      const address = "0x1234567890123456789012345678901234567890";
+      const result = padAddressToTransactionLogTopic(address);
+      expect(result).toBe("0x0000000000000000000000001234567890123456789012345678901234567890");
+      expect(result.length).toBe(66); // 0x + 64 hex chars = 32 bytes
+    });
+
+    it("pads a lowercase address correctly", () => {
+      const address = "0xabcdefabcdefabcdefabcdefabcdefabcdefabcd";
+      const result = padAddressToTransactionLogTopic(address);
+      expect(result).toBe("0x000000000000000000000000abcdefabcdefabcdefabcdefabcdefabcdefabcd");
+      expect(result.length).toBe(66);
+    });
+
+    it("pads an uppercase address correctly", () => {
+      const address = "0xABCDEFABCDEFABCDEFABCDEFABCDEFABCDEFABCD";
+      const result = padAddressToTransactionLogTopic(address);
+      // zeroPadValue returns lowercase
+      expect(result).toBe("0x000000000000000000000000abcdefabcdefabcdefabcdefabcdefabcdefabcd");
+      expect(result.length).toBe(66);
+    });
+
+    it("pads a mixed case address correctly", () => {
+      const address = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266";
+      const result = padAddressToTransactionLogTopic(address);
+      expect(result).toBe("0x000000000000000000000000f39fd6e51aad88f6f4ce6ab8827279cfffb92266");
+      expect(result.length).toBe(66);
+    });
+
+    it("pads an address with all zeros", () => {
+      const address = "0x0000000000000000000000000000000000000000";
+      const result = padAddressToTransactionLogTopic(address);
+      expect(result).toBe("0x0000000000000000000000000000000000000000000000000000000000000000");
+      expect(result.length).toBe(66);
+    });
+
+    it("pads an address with all Fs", () => {
+      const address = "0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF";
+      const result = padAddressToTransactionLogTopic(address);
+      // zeroPadValue returns lowercase
+      expect(result).toBe("0x000000000000000000000000ffffffffffffffffffffffffffffffffffffffff");
+      expect(result.length).toBe(66);
     });
   });
 });

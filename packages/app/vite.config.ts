@@ -10,6 +10,7 @@ export default defineConfig({
     port: 3010,
   },
   build: {
+    target: "esnext",
     sourcemap: "hidden",
     rollupOptions: {
       output: {
@@ -29,16 +30,9 @@ export default defineConfig({
           if (id.includes("@firebase")) {
             return "f";
           }
-          if (id.includes("@ethersproject")) {
-            return "e";
-          }
           if (id.includes("@matterlabs")) {
             return "m";
           }
-          if (id.includes("zksync-web3")) {
-            return "z";
-          }
-
           if (id.includes("/src/composables")) {
             return "cm";
           }
@@ -49,13 +43,33 @@ export default defineConfig({
       },
     },
   },
-  plugins: [vue()],
+  optimizeDeps: {
+    esbuildOptions: {
+      target: "esnext",
+    },
+  },
+  plugins: [
+    vue(),
+    {
+      name: "html-transform",
+      transformIndexHtml(html) {
+        if (process.env.DOCKER_BUILD === "true") {
+          return html;
+        }
+        return replaceEnvVariables(html);
+      },
+    },
+  ],
   resolve: {
     alias: {
       "@": fileURLToPath(new URL("./src", import.meta.url)),
     },
   },
   test: {
+    environment: "jsdom",
+    env: {
+      TZ: "UTC-3",
+    },
     include: ["./tests/**/**.spec.ts"],
     coverage: {
       reporter: ["text", "json", "html"],
@@ -67,3 +81,14 @@ export default defineConfig({
     __INTLIFY_PROD_DEVTOOLS__: false,
   },
 });
+
+function replaceEnvVariables(template: string): string {
+  // Regex matches either:
+  // {{ getenv "VAR" | default "fallback" }}  OR  {{ getenv "VAR" }}
+  const regex = /\{\{\s*getenv\s*"([^"]+)"(?:\s*\|\s*default\s*"([^"]*)")?\s*\}\}/g;
+
+  return template.replace(regex, (_, varName, fallback) => {
+    // If env var exists, use it; else fallback if provided; else empty string
+    return process.env[varName] ?? fallback ?? "";
+  });
+}

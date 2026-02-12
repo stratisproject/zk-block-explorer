@@ -26,6 +26,8 @@ vi.mock("@/composables/useContext", () => {
         bridgeUrl: "https://bridge.zksync.io/",
         apiUrl: "https://api-url",
       })),
+      networks: computed(() => []),
+      user: computed(() => ({ loggedIn: false })),
     }),
   };
 });
@@ -50,9 +52,8 @@ describe("TheHeader:", () => {
     await fireEvent.click(dropdown[0].find("button")!.element);
     const blockExplorerLinks = dropdown[0].findAllComponents(RouterLinkStub);
     expect(blockExplorerLinks[0].props().to.name).toBe("blocks");
-    expect(blockExplorerLinks[1].props().to.name).toBe("batches");
-    expect(blockExplorerLinks[2].props().to.name).toBe("transactions");
-    expect(blockExplorerLinks[3].props().to.name).toBe("tokens");
+    expect(blockExplorerLinks[1].props().to.name).toBe("transactions");
+    expect(blockExplorerLinks[2].props().to.name).toBe("tokens");
 
     await fireEvent.click(dropdown[1].find("button")!.element);
     const toolsLinksRouter = dropdown[1].findAllComponents(RouterLinkStub);
@@ -62,7 +63,7 @@ describe("TheHeader:", () => {
     expect(toolsLinks[2].attributes("href")).toBe("https://bridge.zksync.io/");
 
     expect(wrapper.findAll(".navigation-container > .navigation-link")[0].attributes("href")).toBe(
-      "https://docs.zksync.io/build/tooling/block-explorer/getting-started.html"
+      "https://docs.zksync.io/zksync-network/tooling/block-explorers"
     );
   });
   it("renders social links", () => {
@@ -73,8 +74,8 @@ describe("TheHeader:", () => {
       },
     });
     const routerArray = wrapper.findAll(".socials-container > a");
-    expect(routerArray[0].attributes("href")).toBe("https://join.zksync.dev/");
-    expect(routerArray[1].attributes("href")).toBe("https://twitter.com/zksync");
+    expect(routerArray[0].attributes("href")).toBe("https://join.zksync.dev");
+    expect(routerArray[1].attributes("href")).toBe("https://x.com/zksync");
   });
   it("renders network switch", () => {
     const wrapper = mount(TheHeader, {

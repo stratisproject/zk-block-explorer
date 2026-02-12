@@ -2,7 +2,7 @@
   <Listbox as="div" :model-value="selected" class="network-switch">
     <ListboxButton class="toggle-button">
       <span class="network-item">
-        <img :src="currentNetwork.icon" alt="zkSync arrows logo" class="network-item-img" />
+        <img :src="currentNetwork.icon" alt="ZKsync arrows logo" class="network-item-img" />
         <span class="network-item-label">{{ currentNetwork.l2NetworkName }}</span>
       </span>
       <span class="toggle-button-icon-wrapper">
@@ -52,10 +52,13 @@ import type { NetworkConfig } from "@/configs";
 
 import { getWindowLocation } from "@/utils/helpers";
 
-const { networks, currentNetwork } = useContext();
+const { networks: allNetworks, currentNetwork } = useContext();
 const route = useRoute();
 const selected = computed(() => {
   return currentNetwork.value;
+});
+const networks = computed(() => {
+  return allNetworks.value.filter((n) => n.groupId === currentNetwork.value.groupId);
 });
 
 const getNetworkUrl = (network: NetworkConfig) => {

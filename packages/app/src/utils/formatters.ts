@@ -1,9 +1,8 @@
-import { BigNumber, type BigNumberish, ethers } from "ethers";
-import { isHexString } from "ethers/lib/utils";
+import { type BigNumberish, formatUnits, getAddress, isHexString, ZeroAddress } from "ethers";
 
 import type { Token } from "@/composables/useToken";
 import type { HexDecimals } from "@/composables/useTrace";
-import type { Address } from "@/types";
+import type { Address, Hash } from "@/types";
 
 export function formatMoney(num: number, maximumFractionDigits = 1) {
   return new Intl.NumberFormat("en-US", {
@@ -38,24 +37,21 @@ export function shortValue(value: string, count = 13): string {
 }
 
 export function formatValue(value: BigNumberish, decimals: number): string {
-  return ethers.utils.formatUnits(BigNumber.from(value), decimals);
+  return formatUnits(BigInt(value), decimals);
 }
 
 export function formatBigNumberish(value: BigNumberish, decimals: number) {
-  return ethers.utils.formatUnits(value, decimals).replace(/.0$/g, "");
+  return formatUnits(value, decimals).replace(/.0$/g, "");
 }
 
-export function checksumAddress(address: Address | string): Address {
-  return ethers.utils.getAddress(address) as Address;
+export function checksumAddress(address?: Address | string | null): Address {
+  return address ? (getAddress(address) as Address) : "";
 }
 
 export function convert(value: BigNumberish | null, token: Token | null, tokenPrice: string): string {
   if (token && value) {
     return formatValue(
-      BigNumber.from(value)
-        .mul(BigNumber.from(Math.round(+parseFloat(tokenPrice).toFixed(6) * 1000000)))
-        .div(1000000)
-        .toString(),
+      ((BigInt(value) * BigInt(Math.round(+parseFloat(tokenPrice).toFixed(6) * 1000000))) / BigInt(1000000)).toString(),
       token.decimals
     );
   } else {
@@ -63,14 +59,29 @@ export function convert(value: BigNumberish | null, token: Token | null, tokenPr
   }
 }
 
+export function formatAddressFromHash(value: Hash) {
+  if (value === "0x") {
+    return ZeroAddress;
+  }
+
+  const validValue = value.slice(0, 2) === "0x" ? value.slice(2) : value;
+
+  if (validValue.length !== 64) {
+    return "";
+  }
+
+  return `0x${validValue.slice(24)}`;
+}
+
 export function formatHexDecimals(value: string, showValueAs: HexDecimals) {
   const validValue = value === "0x" ? "0" : value;
   const prefix = isHexString(validValue) ? "" : "0x";
   if (showValueAs === "Dec") {
-    return BigNumber.from(prefix + validValue).toString();
+    return BigInt(prefix + validValue).toString();
   }
-  return BigNumber.from(prefix + validValue).toHexString();
+  return `0x${BigInt(prefix + validValue).toString(16)}`;
 }
+export const numberToHexString = (num: number | bigint) => `0x${num.toString(16)}`;
 
 export function formatPricePretty(amount: BigNumberish, decimals: number, usdPrice: string) {
   const price = +usdPrice * +formatBigNumberish(amount, decimals);
@@ -83,4 +94,9 @@ export function formatPricePretty(amount: BigNumberish, decimals: number, usdPri
   } else {
     return `${formatMoney(price, priceDecimals)}`;
   }
+}
+
+export function formatShortAddress(address: string | null | undefined, prefixLength = 6, suffixLength = 4): string {
+  if (!address) return "-";
+  return `${address.slice(0, prefixLength)}...${address.slice(-suffixLength)}`;
 }

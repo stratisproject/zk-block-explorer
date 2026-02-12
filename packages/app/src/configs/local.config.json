@@ -1,6 +1,7 @@
 {
   "networks": [
     {
+      "groupId": "era",
       "apiUrl": "http://localhost:3020",
       "bridgeUrl": "http://localhost:3000/bridge",
       "hostnames": [
@@ -12,7 +13,8 @@
       "maintenance": false,
       "name": "local",
       "published": true,
-      "rpcUrl": "http://localhost:3050"
+      "rpcUrl": "http://localhost:3050",
+      "baseTokenAddress": "0x000000000000000000000000000000000000800A"
     }
   ]
 }

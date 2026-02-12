@@ -30,11 +30,11 @@ import { useI18n } from "vue-i18n";
 
 import { Listbox, ListboxButton, ListboxOption, ListboxOptions } from "@headlessui/vue";
 import { DotsVerticalIcon } from "@heroicons/vue/outline";
-import { useWallet } from "@matterlabs/composables";
 
 import HashLabel from "@/components/common/HashLabel.vue";
 
 import useContext from "@/composables/useContext";
+import { default as useWallet } from "@/composables/useWallet";
 
 const { t } = useI18n();
 
@@ -62,7 +62,7 @@ const buttonText = computed(() => {
 });
 </script>
 
-<style lang="scss">
+<style scoped lang="scss">
 .metamask-button {
   @apply relative flex w-max min-w-[200px] rounded-lg bg-neutral-200 p-1 pl-2 pr-5 text-neutral-900;
   &:not(.disabled) {
