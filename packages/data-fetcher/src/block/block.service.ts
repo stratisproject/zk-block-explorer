@@ -56,9 +56,7 @@ export class BlockService {
 
     try {
       transactions = await Promise.all(
-        blockTraces
-          .filter((trace) => !!trace.txHash)
-          .map((trace) => this.transactionService.getData(trace.txHash, trace.result, block))
+        block.transactions.map((txHash, idx) => this.transactionService.getData(txHash, blockTraces[idx].result, block))
       );
 
       const stopBalancesDurationMeasuring = this.balancesProcessingDurationMetric.startTimer();
